@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>現場情報 — Estate Ishida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--ink:#1a1a18;--ink2:#4a4a46;--ink3:#8a8a84;--paper:#f7f5f0;--p2:#edeae3;--gold:#b8892a;--gl:#f5e9cc;--teal:#1e7a6e;--tl:#d4efeb;--border:rgba(26,26,24,0.1);--b2:rgba(26,26,24,0.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans JP",sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6}
+.hd{background:var(--ink);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.br{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px}
+.ht{font-size:16px;font-weight:700}
+.rb{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;font-size:12px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.ct{max-width:760px;margin:0 auto;padding:16px}
+.bd{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px}
+.bd2{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;overflow-x:auto}
+.st{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px}
+.pt{height:8px;background:var(--p2);border-radius:4px;overflow:hidden;margin:8px 0}
+.pf{height:100%;background:var(--teal);border-radius:4px}
+.gt{border-collapse:collapse;font-size:12px;width:100%}
+.gt th{background:var(--paper);border-bottom:1px solid var(--border);padding:6px 3px;text-align:center;font-weight:500;color:var(--ink2)}
+.gt td{border-bottom:1px solid var(--b2);padding:0}
+.rl{padding:8px 12px!important;font-weight:500;color:var(--ink);white-space:nowrap;background:#fff;position:sticky;left:0;border-right:1px solid var(--border);min-width:100px;font-size:12px}
+.on{background:#1e7a6e;height:100%;border-radius:3px}
+.off{background:transparent;height:100%;border-radius:3px}
+.vr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--b2)}
+.vr:last-child{border-bottom:none}
+.va{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;background:var(--p2);color:var(--ink2)}
+.di{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--b2);cursor:pointer}
+.di:last-child{border-bottom:none}
+.ic{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--tl)}
+.ld{text-align:center;padding:60px;color:var(--ink3)}
+.ld svg{width:28px;height:28px;margin:0 auto 10px;display:block;animation:spin 1s linear infinite;opacity:.4}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="hd">
+  <div><div class="br">Estate Ishida</div><div class="ht" id="ht">現場情報</div></div>
+  <button class="rb" onclick="loadData()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+    更新
+  </button>
+</div>
+<div class="ct" id="ct">
+  <div class="ld">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+    読み込み中...
+  </div>
+</div>
+<script>
+var SU="https://dzdmikjsbfdjqannzayv.supabase.co";
+var SK="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6ZG1pa2pzYmZkanFhbm56YXl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTk3MzEsImV4cCI6MjA5Mzc5NTczMX0._uKXGP1pijWEOEq5lEIt3auiII498orKC0sFmqrtJiQ";
+var sb=supabase.createClient(SU,SK);
+var db=null,vm="month",di=0;
+var DW=["日","月","火","水","木","金","土"];
+
+function pad(n){return ("0"+n).slice(-2);}
+function dstr(y,m,d){return y+"-"+pad(m)+"-"+pad(d);}
+
+function gM(p){
+  var s=p.start?new Date(p.start):new Date(),a=[];
+  for(var i=0;i<5;i++){var d=new Date(s.getFullYear(),s.getMonth()+i,1);a.push({y:d.getFullYear(),m:d.getMonth()+1});}
+  return a;
+}
+
+function gD(y,m){
+  var a=[],t=new Date(y,m,0).getDate();
+  for(var d=1;d<=t;d++){
+    var dt=new Date(y,m-1,d),dw=dt.getDay();
+    a.push({d:d,s:dstr(y,m,d),dw:dw,wk:dw===0||dw===6,sun:dw===0,sat:dw===6});
+  }
+  return a;
+}
+
+function nB(bars,len){
+  var s=Array.isArray(bars)?bars:[],r=[];
+  for(var i=0;i<len;i++)r.push(typeof s[i]==="number"?s[i]:0);
+  return r;
+}
+
+function mB(k,y,m){
+  // Check dayBars first (day-level data)
+  if(k.dayBars){
+    var t=new Date(y,m,0).getDate();
+    for(var d=1;d<=t;d++){
+      var ds2=dstr(y,m,d);
+      if(k.dayBars[ds2]!==undefined&&k.dayBars[ds2]>0)return 1;
+    }
+    // dayBars exists but all 0 for this month - return 0
+    return 0;
+  }
+  // Fall back to month bars array
+  return 0;
+}
+
+function getMonthBarVal(k,idx,ms){
+  // Get bar value for month index - check dayBars first then bars array
+  var m=ms[idx];
+  if(!m)return 0;
+  if(k.dayBars){
+    var t=new Date(m.y,m.m,0).getDate();
+    for(var d=1;d<=t;d++){
+      var ds2=dstr(m.y,m.m,d);
+      if(k.dayBars[ds2]!==undefined&&k.dayBars[ds2]>0)return 1;
+    }
+    return 0;
+  }
+  var bars=k.bars||[];
+  return bars[idx]>0?1:0;
+}
+
+function svBtn(el){vm=el.getAttribute("data-v");drawK();}
+function sdm(el){di=parseInt(el.getAttribute("data-i"));drawK();}
+
+function mkCell(barOn, todayBg, weekendBg){
+  var bg=todayBg?"rgba(184,137,42,0.06)":weekendBg?"rgba(0,0,0,0.02)":"#fff";
+  var cls=barOn?"on":"off";
+  return "<td style=\"padding:2px 1px;height:30px;background:"+bg+"\"><div class=\""+cls+"\" style=\"height:18px\"></div></td>";
+}
+
+function drawK(){
+  var p=db&&db.projects&&db.projects[0];
+  if(!p)return;
+  var ms=gM(p);
+  var td=new Date();
+  var tds=dstr(td.getFullYear(),td.getMonth()+1,td.getDate());
+  var tk=td.getFullYear()+"-"+(td.getMonth()+1);
+  var dm=ms[di]||ms[0];
+  var days=gD(dm.y,dm.m);
+  var ko=p.kohtei||[];
+  var h="";
+
+  // toggle
+  var mOn=vm==="month";
+  var dOn=vm==="day";
+  h+="<div style=\"display:inline-flex;gap:3px;background:#edeae3;border-radius:8px;padding:3px;margin-bottom:12px\">";
+  h+="<button onclick=\"svBtn(this)\" data-v=\"month\" style=\"padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:"+(mOn?"#fff":"transparent")+";color:"+(mOn?"#1a1a18":"#8a8a84")+";box-shadow:"+(mOn?"0 1px 3px rgba(0,0,0,0.1)":"none")+"\">月</button>";
+  h+="<button onclick=\"svBtn(this)\" data-v=\"day\" style=\"padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:"+(dOn?"#fff":"transparent")+";color:"+(dOn?"#1a1a18":"#8a8a84")+";box-shadow:"+(dOn?"0 1px 3px rgba(0,0,0,0.1)":"none")+"\">日</button>";
+  h+="</div>";
+
+  if(dOn){
+    h+="<div style=\"display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px\">";
+    for(var i=0;i<ms.length;i++){
+      var on2=i===di;
+      h+="<button onclick=\"sdm(this)\" data-i=\""+i+"\" style=\"padding:4px 10px;border:1px solid "+(on2?"#b8892a":"rgba(26,26,24,0.1)")+";border-radius:6px;font-size:12px;cursor:pointer;background:"+(on2?"#f5e9cc":"#fff")+";color:"+(on2?"#b8892a":"#4a4a46")+"\">"+ms[i].y+"年"+ms[i].m+"月</button>";
+    }
+    h+="</div>";
+  }
+
+  h+="<div style=\"overflow-x:auto\"><table class=\"gt\"><thead>";
+
+  if(mOn){
+    h+="<tr><th style=\"text-align:left;padding:8px 12px;min-width:100px;position:sticky;left:0;background:#f7f5f0;z-index:2\">工種</th>";
+    for(var i=0;i<ms.length;i++){
+      var isT=ms[i].y+"-"+ms[i].m===tk;
+      var thStyle="font-size:11px;padding:8px 4px;min-width:48px;"+(isT?"color:#b8892a;font-weight:700;":"");
+      h+="<th style=\""+thStyle+"\">"+ms[i].m+"月<br><span style=\"font-size:9px;opacity:0.6\">"+ms[i].y+"</span></th>";
+    }
+    h+="</tr></thead><tbody>";
+    for(var ki=0;ki<ko.length;ki++){
+      var k=ko[ki],bars=nB(k.bars,ms.length);
+      h+="<tr><td class=\"rl\">"+k.name+"</td>";
+      for(var i=0;i<ms.length;i++){
+        var b=getMonthBarVal(k,i,ms);
+        var isT=ms[i].y+"-"+ms[i].m===tk;
+        h+="<td style=\"padding:5px 3px;height:34px;background:"+(isT?"rgba(184,137,42,0.06)":"#fff")+"\"><div class=\""+( b>0?"on":"off")+"\"></div></td>";
+      }
+      h+="</tr>";
+    }
+  } else {
+    h+="<tr><th style=\"text-align:left;padding:4px 12px;min-width:100px;position:sticky;left:0;background:#f7f5f0;z-index:2;border-bottom:none;font-size:11px;color:#8a8a84\">工種</th>";
+    for(var i=0;i<days.length;i++){
+      var dv=days[i];
+      var col=dv.sun?"#c0392b":dv.sat?"#1d4ed8":"#8a8a84";
+      h+="<th style=\"font-size:9px;padding:3px 0;min-width:18px;text-align:center;border-bottom:none;color:"+col+"\">"+DW[dv.dw]+"</th>";
+    }
+    h+="</tr><tr><th style=\"position:sticky;left:0;background:#f7f5f0;z-index:2;padding:4px 12px;text-align:left;font-size:11px;font-weight:600\">"+dm.y+"年"+dm.m+"月</th>";
+    for(var i=0;i<days.length;i++){
+      var dv=days[i],isT=dv.s===tds;
+      var col=isT?"#b8892a":dv.sun?"#c0392b":dv.sat?"#1d4ed8":"#4a4a46";
+      var bg=isT?"#f5e9cc":"transparent";
+      h+="<th style=\"font-size:10px;padding:3px 0;min-width:18px;text-align:center;font-weight:"+(isT?"700":"400")+";color:"+col+";background:"+bg+"\">"+dv.d+"</th>";
+    }
+    h+="</tr></thead><tbody>";
+    for(var ki=0;ki<ko.length;ki++){
+      var k=ko[ki],bars=nB(k.bars,ms.length),mbi=di<ms.length&&bars[di]>0?1:0;
+      h+="<tr><td class=\"rl\">"+k.name+"</td>";
+      for(var i=0;i<days.length;i++){
+        var dv=days[i];
+        var b=(k.dayBars&&k.dayBars[dv.s]!==undefined)?(k.dayBars[dv.s]>0?1:0):0;
+        var isT=dv.s===tds;
+        var bg2=isT?"rgba(184,137,42,0.06)":dv.wk?"rgba(0,0,0,0.02)":"#fff";
+        h+="<td style=\"padding:2px 1px;height:28px;background:"+bg2+"\"><div class=\""+( b>0?"on":"off")+"\" style=\"height:18px\"></div></td>";
+      }
+      h+="</tr>";
+    }
+  }
+  h+="</tbody></table></div>";
+  document.getElementById("ks").innerHTML="<div class=\"st\">工程表</div>"+h;
+}
+
+async function loadData(){
+  document.getElementById("ct").innerHTML="<div class=\"ld\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83\"/></svg>読み込み中...</div>";
+  try{
+    var r=await sb.from("genba_data").select("*").eq("id","main").single();
+    if(r.error)throw r.error;
+    db=r.data.data;
+    render(new Date(r.data.updated_at).toLocaleString("ja-JP"));
+  }catch(e){
+    document.getElementById("ct").innerHTML="<div style=\"text-align:center;padding:60px;color:#8a8a84\">データを取得できませんでした。<br>更新ボタンを押してください。</div>";
+  }
+}
+
+function render(upd){
+  var p=db&&db.projects&&db.projects[0];
+  if(!p)return;
+  document.getElementById("ht").textContent=p.name||"現場情報";
+  var ms=gM(p),ko=p.kohtei||[];
+  var cnt=0;
+  for(var ki=0;ki<ko.length;ki++){
+    var k=ko[ki],found=false;
+    for(var mi=0;mi<ms.length;mi++){if(getMonthBarVal(k,mi,ms)>0){found=true;break;}}
+    if(found)cnt++;
+  }
+  var pct=ko.length?Math.round(cnt/ko.length*100):0;
+  var h="<div class=\"bd\">";
+  h+="<div style=\"font-size:20px;font-weight:700;margin-bottom:4px\">"+p.name+"</div>";
+  h+="<div style=\"font-size:12px;color:#8a8a84\">"+(p.location||"")+" ／ "+(p.start||"")+" 〜 "+(p.end||"")+"</div>";
+  if(p.desc)h+="<div style=\"font-size:12px;color:#8a8a84;margin-top:2px\">"+p.desc+"</div>";
+  h+="<div class=\"pt\"><div class=\"pf\" style=\"width:"+pct+"%\"></div></div>";
+  h+="<div style=\"display:flex;justify-content:space-between;font-size:11px;color:#8a8a84\"><span>工程 "+pct+"%</span><span>竣工 "+(p.end||"")+"</span></div></div>";
+  h+="<div class=\"bd2\" id=\"ks\"></div>";
+  var vs=p.vendors||[];
+  h+="<div class=\"bd\"><div class=\"st\">業者スケジュール</div>";
+  if(!vs.length)h+="<div style=\"color:#8a8a84;font-size:13px;padding:8px 0\">業者情報なし</div>";
+  for(var i=0;i<vs.length;i++){
+    var v=vs[i];
+    h+="<div class=\"vr\"><div class=\"va\">"+(v.name||v.trade||"?").charAt(0)+"</div>";
+    h+="<div style=\"flex:1\"><div style=\"font-size:13px;font-weight:500\">"+(v.name||"（未定）")+"</div>";
+    h+="<div style=\"font-size:11px;color:#8a8a84\">"+v.trade+(v.enterDate?" ／ "+v.enterDate+"〜"+v.exitDate:"")+"</div></div></div>";
+  }
+  h+="</div>";
+  var docs=(p.docs||[]).filter(function(d){return d.dataUrl;});
+  if(docs.length){
+    h+="<div class=\"bd\"><div class=\"st\">共有書類</div>";
+    for(var i=0;i<docs.length;i++){
+      var d=docs[i];
+      h+="<div class=\"di\" onclick=\"dlDoc('"+d.id+"')\">";
+      h+="<div class=\"ic\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#1e7a6e\" stroke-width=\"1.5\"><path d=\"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/></svg></div>";
+      h+="<div style=\"flex:1\"><div style=\"font-size:13px;font-weight:500\">"+d.name+"</div>";
+      h+="<div style=\"font-size:11px;color:#8a8a84\">"+d.type+" ／ "+d.date+"</div></div></div>";
+    }
+    h+="</div>";
+  }
+  h+="<div style=\"font-size:11px;color:#8a8a84;text-align:center;padding:8px\">最終更新："+upd+"</div>";
+  document.getElementById("ct").innerHTML=h;
+  drawK();
+}
+
+function dlDoc(id){
+  if(!db)return;
+  var docs=(db.projects&&db.projects[0]&&db.projects[0].docs)||[];
+  for(var i=0;i<docs.length;i++){
+    if(docs[i].id===id&&docs[i].dataUrl){
+      var a=document.createElement("a");a.href=docs[i].dataUrl;a.download=docs[i].name;a.click();return;
+    }
+  }
+}
+loadData();
+</script>
+</body>
+</html>
