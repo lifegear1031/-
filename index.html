@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>現場管理 — Estate Ishida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a18;
+  --ink2: #4a4a46;
+  --ink3: #8a8a84;
+  --paper: #f7f5f0;
+  --paper2: #edeae3;
+  --paper3: #e0ddd5;
+  --gold: #b8892a;
+  --gold-light: #f5e9cc;
+  --teal: #1e7a6e;
+  --teal-light: #d4efeb;
+  --red: #c0392b;
+  --red-light: #fde8e6;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --border: rgba(26,26,24,0.1);
+  --border2: rgba(26,26,24,0.06);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 4px rgba(26,26,24,0.08), 0 4px 16px rgba(26,26,24,0.04);
+  --font: 'Noto Sans JP', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6}
+
+/* LAYOUT */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:240px;background:var(--ink);color:#fff;display:flex;flex-direction:column;flex-shrink:0;transition:transform 0.3s ease}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* SIDEBAR */
+.sidebar-header{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.brand{font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:4px}
+.sidebar-title{font-size:15px;font-weight:700;color:#fff}
+.project-switcher{margin:12px 0;padding:0 10px}
+.project-select{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff;font-family:var(--font);font-size:13px;padding:8px 10px;cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.5)' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.6);font-size:13px;font-weight:400;transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.85)}
+.nav-item.active{background:rgba(255,255,255,0.12);color:#fff;font-weight:500}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.7}
+.nav-item.active svg{opacity:1}
+.nav-section{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:16px 12px 4px;font-weight:500}
+.sidebar-footer{padding:12px;border-top:1px solid rgba(255,255,255,0.08)}
+.new-project-btn{width:100%;padding:9px;background:var(--gold);border:none;border-radius:8px;color:#fff;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.15s}
+.new-project-btn:hover{opacity:0.85}
+
+/* TOPBAR */
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:4px}
+.page-title{font-size:16px;font-weight:700;color:var(--ink)}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--ink);transition:all 0.15s}
+.btn:hover{background:var(--paper);border-color:var(--border2)}
+.btn-primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn-primary:hover{background:#333;border-color:#333}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:#fff}
+.btn-gold:hover{opacity:0.85}
+.btn svg{width:14px;height:14px}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.card-sm{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-label{font-size:11px;color:var(--ink3);font-weight:500;letter-spacing:0.04em;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:700;color:var(--ink);font-family:var(--mono)}
+.stat-sub{font-size:11px;color:var(--ink3);margin-top:2px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.badge-green{background:var(--teal-light);color:var(--teal)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-gray{background:var(--paper2);color:var(--ink2)}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-title{font-size:14px;font-weight:700;color:var(--ink)}
+.sec-actions{display:flex;gap:8px}
+
+/* GANTT */
+.gantt-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+.gantt-table{border-collapse:collapse;width:100%;min-width:600px;font-size:12px}
+.gantt-table th{background:var(--paper);border-bottom:1px solid var(--border);padding:8px 6px;text-align:center;font-weight:500;color:var(--ink2);font-size:11px;white-space:nowrap}
+.gantt-table td{border-bottom:1px solid var(--border2);padding:0}
+.gantt-table tr:last-child td{border-bottom:none}
+.row-lbl{padding:10px 14px!important;font-weight:500;color:var(--ink);white-space:nowrap;background:#fff;position:sticky;left:0;z-index:1;border-right:1px solid var(--border);min-width:100px}
+.bar-cell{width:52px;padding:6px 3px!important;height:36px;background:#fff}
+.bar-inner{height:22px;border-radius:4px;width:100%}
+.bar-done{background:#1e7a6e}
+.bar-wip{background:#d97706}
+.bar-plan{background:#afa9ec}
+.bar-empty{background:transparent}
+.today-marker{background:#e74c3c;opacity:0.15}
+.progress-wrap{margin-top:16px}
+.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.progress-name{width:90px;font-size:12px;color:var(--ink2);flex-shrink:0}
+.progress-track{flex:1;height:6px;background:var(--paper2);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+.progress-pct{font-size:11px;font-family:var(--mono);color:var(--ink3);width:30px;text-align:right;flex-shrink:0}
+
+/* VENDOR LIST */
+.vendor-list{display:flex;flex-direction:column;gap:10px}
+.vendor-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.vendor-top{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+.vendor-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.vendor-info{flex:1}
+.vendor-name{font-size:14px;font-weight:600;color:var(--ink)}
+.vendor-trade{font-size:12px;color:var(--ink3)}
+.vendor-chevron{width:16px;height:16px;color:var(--ink3);transition:transform 0.2s}
+.vendor-chevron.open{transform:rotate(90deg)}
+.vendor-body{display:none;padding:0 16px 14px;border-top:1px solid var(--border2)}
+.vendor-body.open{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.detail-item{background:var(--paper);border-radius:8px;padding:10px 12px}
+.detail-lbl{font-size:10px;color:var(--ink3);font-weight:500;letter-spacing:0.05em;margin-bottom:2px}
+.detail-val{font-size:13px;font-weight:500;color:var(--ink)}
+.vendor-actions{display:flex;gap:8px;margin-top:10px}
+.vbtn{flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;background:#fff;font-family:var(--font);font-size:12px;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background 0.15s}
+.vbtn:hover{background:var(--paper)}
+.vbtn svg{width:13px;height:13px}
+
+/* DOCUMENTS */
+.doc-folders{display:flex;flex-direction:column;gap:16px}
+.folder-section{}
+.folder-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.folder-hdr svg{width:16px;height:16px;color:var(--gold)}
+.folder-name{font-size:13px;font-weight:600;color:var(--ink)}
+.folder-count{font-size:11px;color:var(--ink3)}
+.doc-list{display:flex;flex-direction:column;gap:6px}
+.doc-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color 0.15s}
+.doc-item:hover{border-color:var(--gold)}
+.doc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.doc-icon svg{width:18px;height:18px}
+.doc-name{font-size:13px;font-weight:500;color:var(--ink);flex:1}
+.doc-meta{font-size:11px;color:var(--ink3)}
+.upload-zone{border:1.5px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;color:var(--ink3);font-size:13px;cursor:pointer;transition:border-color 0.15s,background 0.15s;margin-top:8px}
+.upload-zone:hover{border-color:var(--gold);background:var(--gold-light)}
+.upload-zone svg{width:24px;height:24px;margin:0 auto 8px;display:block;opacity:0.4}
+
+/* MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-backdrop.open{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;transform:translateY(20px);transition:transform 0.25s ease;box-shadow:0 -4px 40px rgba(0,0,0,0.15)}
+.modal-backdrop.open .modal{transform:translateY(0)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-title{font-size:16px;font-weight:700;color:var(--ink)}
+.close-btn{background:none;border:none;cursor:pointer;color:var(--ink3);padding:4px}
+.close-btn svg{width:20px;height:20px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:5px;display:block}
+.form-input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;color:var(--ink);outline:none;background:#fff;transition:border-color 0.15s}
+.form-input:focus{border-color:var(--gold)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a4a46' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:200;opacity:0;pointer-events:none;transition:all 0.25s;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* OVERLAY for mobile sidebar */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:40;display:none}
+.overlay.show{display:block}
+
+/* LEGEND */
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink2)}
+.legend-dot{width:12px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* TABS (secondary) */
+.tabs{display:flex;gap:2px;background:var(--paper2);border-radius:10px;padding:3px;margin-bottom:16px}
+.tab{flex:1;padding:7px;border:none;background:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all 0.15s}
+.tab.active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+
+/* MOBILE */
+@media(max-width:700px){
+  .sidebar{position:fixed;top:0;left:0;height:100%;z-index:50;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .hamburger{display:block}
+  .content{padding:14px}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .detail-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--paper3);border-radius:2px}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:40px 20px;color:var(--ink3)}
+.empty svg{width:40px;height:40px;margin:0 auto 12px;display:block;opacity:0.25}
+.empty p{font-size:13px}
+
+/* DRIVE STATUS */
+.drive-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);padding:8px 10px;background:var(--paper);border-radius:8px;margin:8px}
+.drive-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0}
+.drive-dot.offline{background:var(--ink3)}
+
+/* SUMMARY RING */
+.summary-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:20px}
+.ring-wrap{text-align:center;flex-shrink:0}
+.ring-label{font-size:10px;color:var(--ink3);margin-top:4px;font-weight:500}
+canvas.ring{display:block}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">Estate Ishida</div>
+      <div class="sidebar-title">現場管理</div>
+    </div>
+    <div class="project-switcher">
+      <select class="project-select" id="projectSelect" onchange="switchProject(this.value)"></select>
+    </div>
+    <div style="padding:0 10px;margin:8px 0">
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+          <div id="driveDot" style="width:6px;height:6px;border-radius:50%;background:#8a8a84;flex-shrink:0"></div>
+          <span id="driveLabel" style="font-size:11px;color:rgba(255,255,255,0.4)">クラウド同期</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="supabaseUpload()" id="btnUpload"
+            style="flex:1;padding:6px 4px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:7px;color:rgba(255,255,255,0.8);font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            保存
+          </button>
+          <button onclick="supabaseDownload()" id="btnDownload"
+            style="flex:1;padding:6px 4px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:7px;color:rgba(255,255,255,0.8);font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            読込
+          </button>
+        </div>
+        <div id="syncNote" style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;text-align:center;line-height:1.4">
+          クラウドに保存・読込できます
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">管理</div>
+      <button class="nav-item active" onclick="showPage('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        ダッシュボード
+      </button>
+      <button class="nav-item" onclick="showPage('kohtei',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/><rect x="3" y="4" width="3" height="4" rx="0.5" fill="currentColor" stroke="none"/><rect x="9" y="10" width="6" height="4" rx="0.5" fill="currentColor" stroke="none" opacity="0.5"/></svg>
+        工程管理
+      </button>
+      <button class="nav-item" onclick="showPage('vendor',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        業者管理
+      </button>
+      <button class="nav-item" onclick="showPage('docs',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        図面・書類
+      </button>
+      <button class="nav-item" onclick="showPage('ledger',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        収支台帳
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="new-project-btn" onclick="openNewProject()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
+        新規現場を追加
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()" aria-label="メニュー">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="page-title" id="pageTitle">ダッシュボード</div>
+      <div class="topbar-actions" id="topbarActions"></div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal" id="modalInner"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== DATA STORE ===== */
+const STORE_KEY = 'genbaKanri_v7';
+let db = load();
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || defaultData(); } catch { return defaultData(); }
+}
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(db));
+}
+function defaultData() {
+  return {
+    projects: [
+      {
+        id: 'p1',
+        name: '玉田事務所',
+        location: '木津川市',
+        start: '2025-03-01',
+        end: '2025-11-30',
+        status: '施工中',
+        desc: '1F：シミュレーションゴルフ / 2F：賃貸住宅',
+        kohtei: [
+          {id:'k1', name:'解体工事',             bars:[1,0,0,0,0,0,0,0,0], status:'完了'},
+          {id:'k2', name:'仮設工事',             bars:[1,1,0,0,0,0,0,0,0], status:'完了'},
+          {id:'k3', name:'地盤調査',             bars:[1,0,0,0,0,0,0,0,0], status:'完了'},
+          {id:'k4', name:'基礎工事',             bars:[0,1,1,0,0,0,0,0,0], status:'完了'},
+          {id:'k5', name:'木工事',               bars:[0,0,1,2,3,0,0,0,0], status:'施工中'},
+          {id:'k6', name:'屋根工事',             bars:[0,0,0,3,3,0,0,0,0], status:'予定'},
+          {id:'k7', name:'断熱吹付工事',         bars:[0,0,0,3,3,0,0,0,0], status:'予定'},
+          {id:'k8', name:'外壁工事',             bars:[0,0,0,0,3,3,0,0,0], status:'予定'},
+          {id:'k9', name:'白蟻・防水工事',       bars:[0,0,0,0,3,3,0,0,0], status:'予定'},
+          {id:'k10',name:'左官工事',             bars:[0,0,0,0,0,3,3,0,0], status:'予定'},
+          {id:'k11',name:'タイル工事',           bars:[0,0,0,0,0,3,3,0,0], status:'予定'},
+          {id:'k12',name:'塗装工事',             bars:[0,0,0,0,0,0,3,3,0], status:'予定'},
+          {id:'k13',name:'電気工事',             bars:[0,0,3,3,3,3,3,3,0], status:'予定'},
+          {id:'k14',name:'ガス工事',             bars:[0,0,0,0,0,3,3,0,0], status:'予定'},
+          {id:'k15',name:'設備工事',             bars:[0,0,3,3,3,3,3,3,0], status:'予定'},
+          {id:'k16',name:'アルミサッシ',         bars:[0,0,0,3,3,0,0,0,0], status:'予定'},
+          {id:'k17',name:'シミュレーションゴルフ',bars:[0,0,0,0,0,3,3,0,0], status:'予定'},
+          {id:'k18',name:'TrackMan',             bars:[0,0,0,0,0,0,3,3,0], status:'予定'},
+          {id:'k19',name:'防犯カメラ設置工事',   bars:[0,0,0,0,0,0,0,3,0], status:'予定'},
+          {id:'k20',name:'住設機器取付',         bars:[0,0,0,0,0,0,3,3,0], status:'予定'},
+          {id:'k21',name:'クロス工事',           bars:[0,0,0,0,0,0,3,3,0], status:'予定'},
+          {id:'k22',name:'美装工事',             bars:[0,0,0,0,0,0,0,3,0], status:'予定'},
+          {id:'k23',name:'外構工事',             bars:[0,0,0,0,0,0,0,3,3], status:'予定'},
+          {id:'k24',name:'消防設備工事',         bars:[0,0,0,0,0,0,0,3,0], status:'予定'},
+          {id:'k25',name:'竣工検査・引渡',       bars:[0,0,0,0,0,0,0,0,3], status:'予定'},
+        ],
+        vendors: [
+          {id:'v1', name:'',trade:'木工事',          phone:'',enterDate:'',exitDate:'',amount:'12179841',payStatus:'未発注',status:'予定',note:'大工手間・材料費・建材費含む'},
+          {id:'v2', name:'',trade:'仮設工事',         phone:'',enterDate:'',exitDate:'',amount:'363000',  payStatus:'未発注',status:'予定',note:'足場架け払い・ネット張替'},
+          {id:'v3', name:'',trade:'基礎工事',         phone:'',enterDate:'',exitDate:'',amount:'4005510', payStatus:'未発注',status:'予定',note:'砕石・根切・コンクリート・鉄筋等'},
+          {id:'v4', name:'',trade:'電気工事',         phone:'',enterDate:'',exitDate:'',amount:'2441300', payStatus:'未発注',status:'予定',note:'共用部・事務所・2階居室'},
+          {id:'v5', name:'',trade:'ガス工事',         phone:'',enterDate:'',exitDate:'',amount:'571600',  payStatus:'未発注',status:'予定',note:'基本工事・給湯器・配管'},
+          {id:'v6', name:'',trade:'設備工事',         phone:'',enterDate:'',exitDate:'',amount:'2809400', payStatus:'未発注',status:'予定',note:'給水・給湯・排水・仮設'},
+          {id:'v7', name:'',trade:'白蟻・防水工事',   phone:'',enterDate:'',exitDate:'',amount:'156370',  payStatus:'未発注',status:'予定',note:'白蟻予防・FRP防水'},
+          {id:'v8', name:'',trade:'断熱吹付工事',     phone:'',enterDate:'',exitDate:'',amount:'789105',  payStatus:'未発注',status:'予定',note:'ウレタン吹付・界壁'},
+          {id:'v9', name:'',trade:'屋根工事',         phone:'',enterDate:'',exitDate:'',amount:'1835250', payStatus:'未発注',status:'予定',note:'立平葺き・樋・棟板金'},
+          {id:'v10',name:'',trade:'外壁工事',         phone:'',enterDate:'',exitDate:'',amount:'3056900', payStatus:'未発注',status:'予定',note:'サイディング・シール・防水シート'},
+          {id:'v11',name:'',trade:'左官工事',         phone:'',enterDate:'',exitDate:'',amount:'1538500', payStatus:'未発注',status:'予定',note:'タイル下地・モルタル・土間'},
+          {id:'v12',name:'',trade:'塗装工事',         phone:'',enterDate:'',exitDate:'',amount:'235500',  payStatus:'未発注',status:'予定',note:'軒天・SD塗装・洗面カウンター'},
+          {id:'v13',name:'',trade:'タイル工事',       phone:'',enterDate:'',exitDate:'',amount:'331800',  payStatus:'未発注',status:'予定',note:'300角タイル・施工費'},
+          {id:'v14',name:'',trade:'クロス工事',       phone:'',enterDate:'',exitDate:'',amount:'1867900', payStatus:'未発注',status:'予定',note:'2F住戸・事務所・共用ホール'},
+          {id:'v15',name:'',trade:'美装工事',         phone:'',enterDate:'',exitDate:'',amount:'96000',   payStatus:'未発注',status:'予定',note:'美装作業'},
+          {id:'v16',name:'',trade:'外構工事',         phone:'',enterDate:'',exitDate:'',amount:'386100',  payStatus:'未発注',status:'予定',note:'フェンス・門扉'},
+          {id:'v17',name:'',trade:'住設機器',         phone:'',enterDate:'',exitDate:'',amount:'3325000', payStatus:'未発注',status:'予定',note:'浴室・キッチン・トイレ・洗面台・給湯器'},
+          {id:'v18',name:'',trade:'アルミサッシ',     phone:'',enterDate:'',exitDate:'',amount:'4332000', payStatus:'未発注',status:'予定',note:'サッシ・ガラス・SD・笠木'},
+          {id:'v19',name:'',trade:'シミュレーションゴルフ',phone:'',enterDate:'',exitDate:'',amount:'1612353',payStatus:'未発注',status:'予定',note:'スクリーン・人工芝・緩衝材等'},
+          {id:'v20',name:'うらさわ工務店',trade:'TrackMan',phone:'',enterDate:'',exitDate:'',amount:'3902000',payStatus:'未発注',status:'予定',note:'本体・パソコン・施工費'},
+          {id:'v21',name:'',trade:'防犯カメラ設置工事',phone:'',enterDate:'',exitDate:'',amount:'355000', payStatus:'未発注',status:'予定',note:'カメラ6台・録画・設定'},
+          {id:'v22',name:'',trade:'解体工事',         phone:'',enterDate:'',exitDate:'',amount:'1043480', payStatus:'未発注',status:'予定',note:'架設・撤去・廃材処分'},
+          {id:'v23',name:'うらさわ工務店',trade:'設計監理費',phone:'077-536-5231',enterDate:'',exitDate:'',amount:'1000000',payStatus:'未発注',status:'予定',note:'設計・確認申請・監理'},
+          {id:'v24',name:'',trade:'消防費',           phone:'',enterDate:'',exitDate:'',amount:'277150',  payStatus:'未発注',status:'予定',note:'火災警報器・誘導灯・申請'},
+          {id:'v25',name:'',trade:'廃材処理費',       phone:'',enterDate:'',exitDate:'',amount:'400000',  payStatus:'未発注',status:'予定',note:''},
+          {id:'v26',name:'',trade:'雑工事',           phone:'',enterDate:'',exitDate:'',amount:'235200',  payStatus:'未発注',status:'予定',note:'養生・仮囲い'},
+          {id:'v27',name:'うらさわ工務店',trade:'施工管理費',phone:'077-536-5231',enterDate:'',exitDate:'',amount:'500000',payStatus:'未発注',status:'予定',note:''},
+          {id:'v28',name:'',trade:'諸経費',           phone:'',enterDate:'',exitDate:'',amount:'1000000', payStatus:'未発注',status:'予定',note:''},
+          {id:'v29',name:'',trade:'地盤調査費',       phone:'',enterDate:'',exitDate:'',amount:'35000',   payStatus:'未発注',status:'予定',note:''},
+          {id:'v30',name:'',trade:'地盤保証保険10年', phone:'',enterDate:'',exitDate:'',amount:'30000',   payStatus:'未発注',status:'予定',note:''},
+        ],
+        docs: [
+          {id:'d1',folder:'図面',name:'平面図（1F・2F）',type:'PDF',date:'2025-04-10'},
+          {id:'d2',folder:'図面',name:'立面図・断面図',type:'PDF',date:'2025-04-10'},
+          {id:'d3',folder:'図面',name:'内部仕上げ表',type:'XLSX',date:'2025-05-01'},
+          {id:'d4',folder:'契約・発注',name:'工事請負契約書',type:'PDF',date:'2025-03-01'},
+          {id:'d5',folder:'契約・発注',name:'田中基礎工業 発注書',type:'PDF',date:'2025-03-28'},
+          {id:'d6',folder:'請求・支払',name:'田中基礎工業 請求書',type:'PDF',date:'2025-05-25'},
+        ],
+        budget: {
+          contractAmount: '54300000',
+          items: [
+            {id:'b1',  category:'木工事',          budgeted:'12179841', actual:'', note:'大工手間・材料費・建材費含む'},
+            {id:'b2',  category:'仮設工事',         budgeted:'363000',   actual:'', note:'足場架け払い・ネット張替'},
+            {id:'b3',  category:'基礎工事',         budgeted:'4005510',  actual:'', note:'砕石・根切・コンクリート・鉄筋等'},
+            {id:'b4',  category:'電気工事',         budgeted:'2441300',  actual:'', note:'共用部・事務所・2階居室'},
+            {id:'b5',  category:'ガス工事',         budgeted:'571600',   actual:'', note:'基本工事・給湯器・配管'},
+            {id:'b6',  category:'設備工事',         budgeted:'2809400',  actual:'', note:'給水・給湯・排水・仮設'},
+            {id:'b7',  category:'白蟻・防水工事',   budgeted:'156370',   actual:'', note:'白蟻予防・FRP防水'},
+            {id:'b8',  category:'断熱吹付工事',     budgeted:'789105',   actual:'', note:'ウレタン吹付・界壁'},
+            {id:'b9',  category:'屋根工事',         budgeted:'1835250',  actual:'', note:'立平葺き・樋・棟板金'},
+            {id:'b10', category:'外壁工事',         budgeted:'3056900',  actual:'', note:'サイディング・シール・防水シート'},
+            {id:'b11', category:'左官工事',         budgeted:'1538500',  actual:'', note:'タイル下地・モルタル・土間'},
+            {id:'b12', category:'塗装工事',         budgeted:'235500',   actual:'', note:'軒天・SD塗装・洗面カウンター'},
+            {id:'b13', category:'タイル工事',       budgeted:'331800',   actual:'', note:'300角タイル・施工費'},
+            {id:'b14', category:'クロス工事',       budgeted:'1867900',  actual:'', note:'2F住戸・事務所・共用ホール'},
+            {id:'b15', category:'美装工事',         budgeted:'96000',    actual:'', note:'美装作業'},
+            {id:'b16', category:'外構工事',         budgeted:'386100',   actual:'', note:'フェンス・門扉'},
+            {id:'b17', category:'住設機器',         budgeted:'3325000',  actual:'', note:'浴室・キッチン・トイレ・洗面台・給湯器'},
+            {id:'b18', category:'アルミサッシ',     budgeted:'4332000',  actual:'', note:'サッシ・ガラス・SD・笠木'},
+            {id:'b19', category:'シミュレーションゴルフ', budgeted:'1612353', actual:'', note:'スクリーン・人工芝・緩衝材等'},
+            {id:'b20', category:'TrackMan',         budgeted:'3902000',  actual:'', note:'本体・パソコン・施工費'},
+            {id:'b21', category:'防犯カメラ設置工事', budgeted:'355000', actual:'', note:'カメラ6台・録画・設定'},
+            {id:'b22', category:'解体工事',         budgeted:'1043480',  actual:'', note:'架設・撤去・廃材処分'},
+            {id:'b23', category:'設計監理費',       budgeted:'1000000',  actual:'', note:'設計・確認申請・監理'},
+            {id:'b24', category:'消防費',           budgeted:'277150',   actual:'', note:'火災警報器・誘導灯・申請'},
+            {id:'b25', category:'廃材処理費',       budgeted:'400000',   actual:'', note:''},
+            {id:'b26', category:'雑工事',           budgeted:'235200',   actual:'', note:'養生・仮囲い'},
+            {id:'b27', category:'施工管理費',       budgeted:'500000',   actual:'', note:''},
+            {id:'b28', category:'諸経費',           budgeted:'1000000',  actual:'', note:''},
+            {id:'b29', category:'地盤調査費',       budgeted:'35000',    actual:'', note:''},
+            {id:'b30', category:'地盤保証保険10年', budgeted:'30000',    actual:'', note:''},
+          ],
+          income: [
+            {id:'i1',category:'請負金（着手金）',amount:'18100000',date:'',note:'支払条件：着手・中間・完了3回払い'},
+            {id:'i2',category:'請負金（中間金）',amount:'18100000',date:'',note:''},
+            {id:'i3',category:'請負金（完了金）',amount:'18100000',date:'',note:''},
+          ]
+        }
+      }
+    ],
+    currentProject: 'p1'
+  };
+}
+
+function currentProject() {
+  return db.projects.find(p => p.id === db.currentProject) || db.projects[0];
+}
+
+/* ===== UI STATE ===== */
+let currentPage = 'dashboard';
+
+function switchProject(id) {
+  db.currentProject = id;
+  save();
+  renderPage(currentPage);
+  closeSidebar();
+}
+
+function showPage(page, btn) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const titles = {dashboard:'ダッシュボード',kohtei:'工程管理',vendor:'業者管理',docs:'図面・書類',ledger:'収支台帳'};
+  document.getElementById('pageTitle').textContent = titles[page] || page;
+  renderPage(page);
+  closeSidebar();
+}
+
+function renderPage(page) {
+  const c = document.getElementById('content');
+  const tb = document.getElementById('topbarActions');
+  tb.innerHTML = '';
+  if(page === 'dashboard') { renderDashboard(c,tb); }
+  else if(page === 'kohtei') { renderKohtei(c,tb); }
+  else if(page === 'vendor') { renderVendor(c,tb); }
+  else if(page === 'docs') { renderDocs(c,tb); }
+  else if(page === 'ledger') { renderLedger(c,tb); }
+}
+
+/* ===== PROJECT SELECT ===== */
+function buildProjectSelect() {
+  const sel = document.getElementById('projectSelect');
+  sel.innerHTML = db.projects.map(p =>
+    `<option value="${p.id}" ${p.id===db.currentProject?'selected':''}>${p.name}</option>`
+  ).join('');
+}
+
+/* ===== DASHBOARD ===== */
+function fmt(n){return parseInt(n||0).toLocaleString('ja-JP');}
+function renderDashboard(c, tb) {
+  const p = currentProject();
+  if(!p.budget) p.budget={contractAmount:'0',items:[],income:[]};
+  const lg = p.budget;
+  const contract = parseInt(lg.contractAmount||0);
+  const budgetTotal = lg.items.reduce((s,i)=>s+parseInt(i.budgeted||0),0);
+  const actualTotal  = lg.items.reduce((s,i)=>s+parseInt(i.actual||0),0);
+  const incomeTotal  = lg.income.reduce((s,i)=>s+parseInt(i.amount||0),0);
+  const paidVendor   = p.vendors.filter(v=>v.payStatus==='支払済').reduce((s,v)=>s+parseInt(v.amount||0),0);
+  const grossProfit  = contract - budgetTotal;
+  const grossMargin  = contract ? Math.round(grossProfit/contract*100) : 0;
+  const doneRows = p.kohtei.filter(k=>k.status==='完了').length;
+  const progress = p.kohtei.length ? Math.round(doneRows/p.kohtei.length*100) : 0;
+  const marginColor = grossMargin>=20?'var(--teal)':grossMargin>=10?'var(--amber)':'var(--red)';
+
+  function inlineNum(id, val, color='var(--ink)', fontSize='20px') {
+    const formatted = parseInt(val||0).toLocaleString('ja-JP');
+    return `<div style="position:relative">
+      <div id="disp-${id}" style="font-size:${fontSize};font-weight:700;font-family:var(--mono);color:${color};padding:2px 0;border-bottom:1.5px solid var(--border);cursor:text;min-height:1.4em;letter-spacing:0.02em"
+        onclick="startEditInline('${id}','${val}','${color}','${fontSize}')">${formatted}</div>
+    </div>`;
+  }
+
+  c.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--ink3);font-weight:500;letter-spacing:0.06em;margin-bottom:2px">現在の現場</div>
+          <div style="font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px">${p.name}</div>
+          <div style="font-size:12px;color:var(--ink3)">${p.location} ／ ${p.start} 〜 ${p.end}</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:2px">${p.desc||''}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <span class="badge ${statusBadge(p.status)}">${p.status}</span>
+          <button class="btn" style="font-size:12px;padding:5px 10px" onclick="openEditProject()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            編集
+          </button>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-bottom:4px">
+          <span>工程進捗</span><span style="font-family:var(--mono)">${progress}%</span>
+        </div>
+        <div style="height:8px;background:var(--paper2);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${progress}%;background:var(--teal);border-radius:4px;transition:width 0.8s ease"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-top:4px">
+          <span>着工 ${p.start}</span><span>竣工 ${p.end}</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:6px;padding:0 2px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="vertical-align:-1px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      数字をタップして直接編集できます（1円単位）
+    </div>
+
+    <div class="stat-grid" style="margin-bottom:16px">
+      <div class="stat-card">
+        <div class="stat-label">請負金額（円）</div>
+        ${inlineNum('contract', contract)}
+        <div class="stat-sub" style="margin-top:4px">税込</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">実行予算合計（円）</div>
+        ${inlineNum('budgetTotal', budgetTotal, 'var(--ink2)')}
+        <div class="stat-sub" style="margin-top:4px">収支台帳より</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">予算粗利（円）</div>
+        <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:${marginColor};padding:2px 0">${fmt(grossProfit)}</div>
+        <div class="stat-sub" style="margin-top:4px">利益率 ${grossMargin}%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">業者支払済（円）</div>
+        <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--ink);padding:2px 0">${fmt(paidVendor)}</div>
+        <div class="stat-sub" style="margin-top:4px">業者管理で変更</div>
+      </div>
+    </div>
+
+    <div class="card-sm" style="margin-bottom:16px">
+      <div class="sec-hdr" style="margin-bottom:10px">
+        <div class="sec-title">入金スケジュール</div>
+        <button class="add-btn" onclick="openAddIncomeFromDash()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 5v14M5 12h14"/></svg>追加
+        </button>
+      </div>
+      ${lg.income.length===0?'<div style="font-size:12px;color:var(--ink3);text-align:center;padding:12px">入金データなし</div>':''}
+      ${lg.income.map(inc=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border2)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:500;color:var(--ink)">${inc.category}</div>
+            <div style="font-size:11px;color:var(--ink3)">${inc.note||''}${inc.date?' ／ '+inc.date:''}</div>
+          </div>
+          <div id="inc-disp-${inc.id}" style="width:120px;text-align:right;font-family:var(--mono);font-size:14px;font-weight:600;border-bottom:1.5px solid var(--border);color:var(--teal);padding:2px 0;flex-shrink:0;cursor:text;letter-spacing:0.02em"
+            onclick="startEditIncome('${inc.id}','${inc.amount||0}')">
+            ${parseInt(inc.amount||0).toLocaleString('ja-JP')}
+          </div>
+          <button onclick="deleteDashIncome('${inc.id}')" style="background:none;border:none;cursor:pointer;color:var(--ink3);padding:2px;flex-shrink:0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          </button>
+        </div>
+      `).join('')}
+      ${lg.income.length>0?`
+      <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-size:12px">
+        <span style="color:var(--ink3)">入金合計</span>
+        <span style="font-family:var(--mono);font-weight:700;color:var(--teal)">${fmt(incomeTotal)}円</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0 0;font-size:12px">
+        <span style="color:var(--ink3)">未入金</span>
+        <span style="font-family:var(--mono);font-weight:700;color:var(--amber)">${fmt(contract-incomeTotal)}円</span>
+      </div>`:''}
+    </div>
+
+    <div class="card-sm" style="margin-bottom:16px">
+      <div class="sec-hdr" style="margin-bottom:12px">
+        <div class="sec-title">直近の業者スケジュール</div>
+      </div>
+      ${p.vendors.filter(v=>v.status!=='完了').slice(0,3).map(v=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2)">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--ink2);flex-shrink:0">${v.name.charAt(0)}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${v.name}</div>
+            <div style="font-size:11px;color:var(--ink3)">${v.trade} ／ ${v.enterDate}〜${v.exitDate}</div>
+          </div>
+          <span class="badge ${statusBadge(v.status)}">${v.status}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="card-sm">
+      <div class="sec-title" style="margin-bottom:10px">全プロジェクト</div>
+      ${db.projects.map(proj=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2);cursor:pointer" onclick="document.getElementById('projectSelect').value='${proj.id}';switchProject('${proj.id}')">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${proj.name}</div>
+            <div style="font-size:11px;color:var(--ink3)">${proj.location} ／ ${proj.start} 〜 ${proj.end}</div>
+          </div>
+          <span class="badge ${statusBadge(proj.status)}">${proj.status}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  tb.innerHTML = `
+    <button class="btn" onclick="openEditProject()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      現場を編集
+    </button>
+    <button class="btn btn-gold" onclick="openNewProject()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>現場追加
+    </button>`;
+}
+
+/* ===== KOHTEI ===== */
+
+// bar value cycle: 0=なし → 3=予定 → 2=施工中 → 1=完了 → 0
+function cycleBar(v) { return v===0?3:v===3?2:v===2?1:0; }
+function barClass(v) { return v===1?'bar-done':v===2?'bar-wip':v===3?'bar-plan':'bar-empty'; }
+function barLabel(v) { return v===1?'完':v===2?'中':v===3?'予':''; }
+
+// プロジェクトの着工〜竣工から月リストを生成
+function getProjectMonths(p) {
+  const start = p.start ? new Date(p.start) : new Date();
+  const end   = p.end   ? new Date(p.end)   : new Date(start.getFullYear(), start.getMonth()+8, 1);
+  const months = [];
+  let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+  while(cur <= endMonth) {
+    months.push({ year: cur.getFullYear(), month: cur.getMonth()+1 });
+    cur.setMonth(cur.getMonth()+1);
+  }
+  return months;
+}
+
+function monthLabel(m) {
+  return `${m.year}年${m.month}月`;
+}
+function monthShort(m) {
+  return `${m.month}月`;
+}
+
+// kohteiのbarsをmonths長に合わせて拡張・縮小（常にlen要素を返す）
+function normalizeBars(bars, len) {
+  const src = Array.isArray(bars) ? bars : [];
+  const result = [];
+  for(let i=0; i<len; i++) {
+    result.push(typeof src[i]==='number' ? src[i] : 0);
+  }
+  return result;
+}
+
+function toggleBar(kid, monthIdx) {
+  const p = currentProject();
+  const k = p.kohtei.find(x=>x.id===kid);
+  if(!k) return;
+  const months = getProjectMonths(p);
+  k.bars = normalizeBars(k.bars, months.length);
+  k.bars[monthIdx] = cycleBar(k.bars[monthIdx]);
+  const vals = k.bars;
+  if(vals.some(v=>v===2)) k.status='施工中';
+  else if(vals.every(v=>v===1||v===0) && vals.some(v=>v===1)) k.status='完了';
+  else if(vals.some(v=>v===3)) k.status='予定';
+  else k.status='予定';
+  save();
+  renderKohtei(document.getElementById('content'), document.getElementById('topbarActions'));
+}
+
+function saveKohteiName(kid, val) {
+  const p = currentProject();
+  const k = p.kohtei.find(x=>x.id===kid);
+  if(k) { k.name = val.trim(); save(); }
+}
+
+function saveKohteiStatus(kid, val) {
+  const p = currentProject();
+  const k = p.kohtei.find(x=>x.id===kid);
+  if(k) { k.status = val; save(); renderKohtei(document.getElementById('content'), document.getElementById('topbarActions')); }
+}
+
+function deleteKohtei(kid) {
+  if(!confirm('この工種を削除しますか？')) return;
+  const p = currentProject();
+  p.kohtei = p.kohtei.filter(k=>k.id!==kid);
+  save();
+  renderKohtei(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast('削除しました');
+}
+
+function renderKohtei(c, tb) {
+  const p = currentProject();
+  const months = getProjectMonths(p);
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${today.getMonth()+1}`;
+
+  c.innerHTML = `
+    <div style="margin-bottom:12px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px">
+      <div style="font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:8px">工期</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:11px;color:var(--ink3)">着工</label>
+          <input type="date" value="${p.start||''}"
+            style="border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:12px;padding:5px 8px;color:var(--ink);outline:none;background:#fff"
+            onfocus="this.style.borderColor='var(--gold)'"
+            onblur="this.style.borderColor='var(--border)';saveProjectDate('start',this.value)">
+        </div>
+        <span style="color:var(--ink3)">〜</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:11px;color:var(--ink3)">竣工</label>
+          <input type="date" value="${p.end||''}"
+            style="border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:12px;padding:5px 8px;color:var(--ink);outline:none;background:#fff"
+            onfocus="this.style.borderColor='var(--gold)'"
+            onblur="this.style.borderColor='var(--border)';saveProjectDate('end',this.value)">
+        </div>
+        <span style="font-size:11px;color:var(--ink3)">${months.length}ヶ月</span>
+      </div>
+    </div>
+
+    <div class="legend" style="margin-bottom:10px">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>完了</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>施工中</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#afa9ec"></div>予定</div>
+      <div style="font-size:11px;color:var(--ink3);margin-left:4px">— バーをタップで切替</div>
+    </div>
+
+    <div class="gantt-wrap" style="margin-bottom:20px">
+      <table class="gantt-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:8px 10px;min-width:110px;position:sticky;left:0;background:var(--paper);z-index:2">工種</th>
+            ${months.map(m=>{
+              const isToday = `${m.year}-${m.month}`===todayKey;
+              return `<th style="font-size:10px;padding:6px 2px;min-width:36px;${isToday?'color:var(--gold);font-weight:700;border-bottom:2px solid var(--gold)':''}">${monthShort(m)}<br><span style="font-size:9px;opacity:0.6">${m.year}</span></th>`;
+            }).join('')}
+            <th style="min-width:70px">状況</th>
+            <th style="width:28px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${p.kohtei.map(k=>{
+            const bars = normalizeBars(k.bars, months.length);
+            return `<tr>
+              <td class="row-lbl" style="padding:6px 10px!important">
+                <input type="text" value="${k.name}"
+                  style="width:100%;border:none;border-bottom:1px solid transparent;background:transparent;font-family:var(--font);font-size:12px;font-weight:500;color:var(--ink);padding:2px 0;outline:none"
+                  onfocus="this.style.borderBottomColor='var(--gold)'"
+                  onblur="this.style.borderBottomColor='transparent';saveKohteiName('${k.id}',this.value)"
+                  onkeydown="if(event.key==='Enter')this.blur()">
+              </td>
+              ${bars.map((b,i)=>{
+                const isToday = `${months[i].year}-${months[i].month}`===todayKey;
+                return `<td style="padding:4px 2px!important;cursor:pointer;height:36px;background:${isToday?'rgba(184,137,42,0.06)':'#fff'}" onclick="toggleBar('${k.id}',${i})" title="${monthLabel(months[i])}：タップで切替">
+                  <div class="bar-inner ${barClass(b)}" style="height:22px;border-radius:4px;width:100%"></div>
+                </td>`;
+              }).join('')}
+              <td style="padding:6px 6px;white-space:nowrap">
+                <select onchange="saveKohteiStatus('${k.id}',this.value)"
+                  style="border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:11px;padding:3px 4px;background:#fff;color:var(--ink);outline:none;cursor:pointer;width:100%">
+                  ${['予定','施工中','完了'].map(s=>`<option ${s===k.status?'selected':''}>${s}</option>`).join('')}
+                </select>
+              </td>
+              <td style="padding:4px">
+                <button onclick="deleteKohtei('${k.id}')" style="background:none;border:none;cursor:pointer;color:var(--ink3);padding:2px" title="削除">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                </button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-sm">
+      <div class="sec-title" style="margin-bottom:12px">工種別進捗</div>
+      <div class="progress-wrap">
+        ${p.kohtei.map(k=>{
+          const pct = k.status==='完了'?100:k.status==='施工中'?50:0;
+          const col = k.status==='完了'?'var(--teal)':k.status==='施工中'?'var(--amber)':'var(--paper3)';
+          return `<div class="progress-row">
+            <div class="progress-name">${k.name}</div>
+            <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>
+            <div class="progress-pct">${pct}%</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  tb.innerHTML = `
+    <button class="btn" onclick="openAddKohtei()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>工種追加
+    </button>`;
+}
+
+function saveProjectDate(field, val) {
+  const p = currentProject();
+  p[field] = val;
+  save();
+  renderKohtei(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast(field==='start'?'着工日を更新しました':'竣工日を更新しました');
+}
+
+/* ===== VENDOR ===== */
+function renderVendor(c, tb) {
+  const p = currentProject();
+  const total = p.vendors.reduce((s,v)=>s+parseInt(v.amount||0),0);
+  const paid  = p.vendors.filter(v=>v.payStatus==='支払済').reduce((s,v)=>s+parseInt(v.amount||0),0);
+
+  c.innerHTML = `
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:#fff;margin-bottom:16px">
+      <table style="width:100%;border-collapse:collapse;min-width:560px;font-size:13px">
+        <thead>
+          <tr style="background:var(--paper);border-bottom:1px solid var(--border)">
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:var(--ink2);font-size:11px;white-space:nowrap">会社名</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:500;color:var(--ink2);font-size:11px">工種</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:500;color:var(--ink2);font-size:11px;white-space:nowrap">入場〜退場</th>
+            <th style="padding:10px 8px;text-align:right;font-weight:500;color:var(--ink2);font-size:11px;white-space:nowrap">金額（円）</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:500;color:var(--ink2);font-size:11px">支払</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:500;color:var(--ink2);font-size:11px">状況</th>
+            <th style="padding:10px 8px;width:60px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${p.vendors.map(v=>`
+            <tr style="border-bottom:1px solid var(--border2)" id="vrow-${v.id}">
+              <td style="padding:6px 14px">
+                <input type="text" value="${v.name}" placeholder="業者名"
+                  style="width:100%;min-width:90px;border:none;border-bottom:1px solid transparent;background:transparent;font-family:var(--font);font-size:13px;font-weight:500;color:var(--ink);padding:3px 0;outline:none"
+                  onfocus="this.style.borderBottomColor='var(--gold)'"
+                  onblur="this.style.borderBottomColor='transparent';saveVendorName('${v.id}',this.value)"
+                  onkeydown="if(event.key==='Enter')this.blur()">
+              </td>
+              <td style="padding:6px 8px">
+                <select
+                  style="width:100%;min-width:110px;border:none;border-bottom:1px solid var(--border);background:transparent;font-family:var(--font);font-size:13px;color:var(--ink2);padding:3px 0;outline:none;cursor:pointer;appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a8a84' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 4px center;padding-right:18px"
+                  onchange="saveVendorTrade('${v.id}',this.value)">
+                  ${(()=>{ const trades=['土木工事', '建築工事', '大工工事', '左官工事', 'とび・土工・コンクリート工事', '石工事', '屋根工事', '電気工事', '管工事', 'タイル・れんが・ブロック工事', '鋼構造物工事', '鉄筋工事', '舗装工事', 'しゅんせつ工事', '板金工事', 'ガラス工事', '塗装工事', '防水工事', '内装仕上工事', '機械器具設置工事', '熱絶縁工事', '電気通信工事', '造園工事', 'さく井工事', '建具工事', '水道施設工事', '消防施設工事', '清掃施設工事', '解体工事', '木工事', '仮設工事', '基礎工事', '外壁工事', '設備工事', 'ガス工事', '住設機器', 'アルミサッシ', 'クロス工事', '断熱工事', '外構工事', '美装工事', 'シミュレーションゴルフ', 'TrackMan', '防犯カメラ設置工事', '廃材処理費', '雑工事', '施工管理費', '諸経費', '設計監理費', '地盤調査費', '地盤保証保険', '消防費', 'その他']; return trades.map(t=>`<option value="${t}" ${t===v.trade?'selected':''}>${t}</option>`).join(''); })()}
+                </select>
+              </td>
+              <td style="padding:10px 8px;color:var(--ink3);font-size:12px;white-space:nowrap">${v.enterDate||'—'}〜${v.exitDate||'—'}</td>
+              <td style="padding:6px 8px;text-align:right">
+                <input
+                  type="number"
+                  value="${v.amount||0}"
+                  style="width:80px;text-align:right;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--ink);background:#fff;outline:none"
+                  onfocus="this.style.borderColor='var(--gold)'"
+                  onblur="this.style.borderColor='var(--border)';saveAmount('${v.id}',this.value)"
+                  onkeydown="if(event.key==='Enter')this.blur()"
+                >
+              </td>
+              <td style="padding:10px 8px">
+                <select onchange="savePayStatus('${v.id}',this.value)" style="border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:12px;padding:4px 6px;background:#fff;color:var(--ink);outline:none;cursor:pointer">
+                  ${['未発注','未請求','請求済','支払済'].map(s=>`<option ${s===v.payStatus?'selected':''}>${s}</option>`).join('')}
+                </select>
+              </td>
+              <td style="padding:10px 8px"><span class="badge ${statusBadge(v.status)}">${v.status}</span></td>
+              <td style="padding:10px 8px">
+                <div style="display:flex;gap:4px">
+                  <button onclick="openEditVendor('${v.id}')" title="編集" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 6px;cursor:pointer;color:var(--ink2)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button onclick="deleteVendor('${v.id}')" title="削除" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 6px;cursor:pointer;color:var(--red)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:var(--paper);border-top:1px solid var(--border)">
+            <td colspan="3" style="padding:10px 14px;font-size:12px;color:var(--ink3)">合計 ${p.vendors.length}社</td>
+            <td style="padding:10px 8px;text-align:right;font-weight:700;font-family:var(--mono);color:var(--ink)">${total.toLocaleString()}</td>
+            <td colspan="3" style="padding:10px 8px;font-size:12px;color:var(--ink3)">支払済 ${paid.toLocaleString()}円</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    ${p.vendors.length===0?`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>業者がまだ登録されていません</p></div>`:''}
+  `;
+
+  tb.innerHTML = `<button class="btn btn-primary" onclick="openAddVendor()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>業者追加
+  </button>`;
+}
+
+function saveVendorTrade(id, val) {
+  const p = currentProject();
+  const v = p.vendors.find(x=>x.id===id);
+  if(!v) return;
+  v.trade = val.trim();
+  save();
+}
+
+function saveVendorName(id, val) {
+  const p = currentProject();
+  const v = p.vendors.find(x=>x.id===id);
+  if(!v) return;
+  v.name = val.trim();
+  save();
+}
+
+function saveAmount(id, val) {
+  const p = currentProject();
+  const v = p.vendors.find(x=>x.id===id);
+  if(!v) return;
+  const n = parseInt(val)||0;
+  if(v.amount == n) return;
+  v.amount = String(n);
+  save();
+  // 合計行だけ更新
+  const tfoot = document.querySelector('tfoot td:nth-child(2)');
+  if(tfoot) {
+    const total = p.vendors.reduce((s,v)=>s+parseInt(v.amount||0),0);
+    tfoot.textContent = total.toLocaleString();
+  }
+  showToast('金額を保存しました');
+}
+
+function savePayStatus(id, val) {
+  const p = currentProject();
+  const v = p.vendors.find(x=>x.id===id);
+  if(!v) return;
+  v.payStatus = val;
+  save();
+  showToast('支払状況を更新しました');
+}
+
+function renderVendorCard(v) {
+  const colors = {
+    '基礎工事':['#d4efeb','#1e7a6e'],
+    '躯体工事':['#fef3c7','#d97706'],
+    '内装工事':['#eeedfe','#534ab7'],
+    '外装工事':['#fde8e6','#c0392b'],
+    '設備工事':['#dbeafe','#1d4ed8'],
+  };
+  const [bg,fg] = colors[v.trade] || ['var(--paper2)','var(--ink2)'];
+  return `
+    <div class="vendor-card">
+      <div class="vendor-top" onclick="toggleVendor('${v.id}')">
+        <div class="vendor-avatar" style="background:${bg};color:${fg}">${v.name.charAt(0)}</div>
+        <div class="vendor-info">
+          <div class="vendor-name">${v.name}</div>
+          <div class="vendor-trade">${v.trade}</div>
+        </div>
+        <span class="badge ${statusBadge(v.status)}" style="margin-right:6px">${v.status}</span>
+        <svg class="vendor-chevron" id="chev-${v.id}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="vendor-body" id="vbody-${v.id}">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="detail-lbl">電話</div><div class="detail-val">${v.phone||'—'}</div></div>
+          <div class="detail-item"><div class="detail-lbl">担当工種</div><div class="detail-val">${v.trade}</div></div>
+          <div class="detail-item"><div class="detail-lbl">入場日</div><div class="detail-val">${v.enterDate||'—'}</div></div>
+          <div class="detail-item"><div class="detail-lbl">退場日</div><div class="detail-val">${v.exitDate||'—'}</div></div>
+          <div class="detail-item"><div class="detail-lbl">請負金額</div><div class="detail-val">${parseInt(v.amount||0).toLocaleString()}円</div></div>
+          <div class="detail-item"><div class="detail-lbl">支払状況</div><div class="detail-val"><span class="badge ${payBadge(v.payStatus)}">${v.payStatus}</span></div></div>
+        </div>
+        ${v.note?`<div style="font-size:12px;color:var(--ink3);margin-bottom:10px">${v.note}</div>`:''}
+        <div class="vendor-actions">
+          <button class="vbtn" onclick="if(confirm('${v.name}に電話しますか？'))location.href='tel:${v.phone}'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.99 4.18 2 2 0 012.97 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            電話
+          </button>
+          <button class="vbtn" onclick="openEditVendor('${v.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            編集
+          </button>
+          <button class="vbtn" onclick="deleteVendor('${v.id}')" style="color:var(--red)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            削除
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleVendor(id) {
+  const body = document.getElementById('vbody-'+id);
+  const chev = document.getElementById('chev-'+id);
+  const open = body.classList.toggle('open');
+  if(chev) chev.classList.toggle('open', open);
+}
+
+function deleteVendor(id) {
+  if(!confirm('この業者を削除しますか？')) return;
+  const p = currentProject();
+  p.vendors = p.vendors.filter(v=>v.id!==id);
+  save(); renderVendor(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast('業者を削除しました');
+}
+
+/* ===== DOCS ===== */
+function docIconBg(type) {
+  if(!type) return 'var(--paper2)';
+  const t = type.toUpperCase();
+  if(t==='PDF') return '#d4efeb';
+  if(t==='XLSX'||t==='XLS'||t==='CSV') return '#eeedfe';
+  if(t==='DOC'||t==='DOCX') return '#dbeafe';
+  if(t.match(/JPG|JPEG|PNG|GIF|HEIC|HEIF|WEBP/)) return '#fef3c7';
+  return 'var(--paper2)';
+}
+function docExt(filename) {
+  const m = filename.match(/\.([^.]+)$/);
+  return m ? m[1].toUpperCase() : 'FILE';
+}
+
+function renderDocs(c, tb) {
+  const p = currentProject();
+  const allFolders = ['図面','契約・発注','請求・支払','写真','その他'];
+  const usedFolders = [...new Set([...allFolders, ...p.docs.map(d=>d.folder)])];
+
+  c.innerHTML = `
+    <div style="margin-bottom:12px;padding:12px 14px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;align-items:center;gap:10px;cursor:pointer;border-style:dashed"
+      onclick="triggerFileUpload()"
+      ondragover="event.preventDefault();this.style.background='var(--gold-light)'"
+      ondragleave="this.style.background='#fff'"
+      ondrop="event.preventDefault();this.style.background='#fff';handleFileDrop(event)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold);flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--ink)">ファイルをアップロード</div>
+        <div style="font-size:11px;color:var(--ink3)">タップして選択 または ドラッグ＆ドロップ</div>
+      </div>
+      <input type="file" id="fileInput" multiple accept="*/*" style="display:none" onchange="handleFileSelect(event)">
+    </div>
+
+    <div class="doc-folders">
+      ${usedFolders.map(folder=>{
+        const docs = p.docs.filter(d=>d.folder===folder);
+        if(docs.length===0) return '';
+        return `
+        <div class="folder-section">
+          <div class="folder-hdr">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            <span class="folder-name">${folder}</span>
+            <span class="folder-count">${docs.length}件</span>
+          </div>
+          <div class="doc-list">
+            ${docs.map(d=>`
+              <div class="doc-item" onclick="openDoc('${d.id}')">
+                <div class="doc-icon" style="background:${docIconBg(d.type)}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div class="doc-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
+                  <div class="doc-meta">${d.type} ／ ${d.date}${d.size?' ／ '+d.size:''}</div>
+                </div>
+                <div style="display:flex;gap:4px;flex-shrink:0">
+                  ${d.dataUrl?`<button onclick="event.stopPropagation();downloadDoc('${d.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--ink2);padding:4px 6px" title="ダウンロード">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  </button>`:''}
+                  <button onclick="event.stopPropagation();deleteDoc('${d.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--red);padding:4px 6px" title="削除">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  tb.innerHTML = `<button class="btn btn-primary" onclick="triggerFileUpload()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>アップロード
+  </button>`;
+}
+
+function triggerFileUpload() {
+  document.getElementById('fileInput').click();
+}
+
+function handleFileSelect(event) {
+  processFiles(Array.from(event.target.files));
+  event.target.value = '';
+}
+
+function handleFileDrop(event) {
+  processFiles(Array.from(event.dataTransfer.files));
+}
+
+function processFiles(files) {
+  if(!files.length) return;
+  openFolderSelectModal(files);
+}
+
+function openFolderSelectModal(files) {
+  const names = files.map(f=>f.name).join('、');
+  openModal(`
+    ${modalHdr('保存先フォルダを選択')}
+    <div style="font-size:13px;color:var(--ink2);margin-bottom:14px;padding:10px;background:var(--paper);border-radius:8px;word-break:break-all">${names}</div>
+    <div class="form-group"><label class="form-label">フォルダ</label>
+      <select class="form-input form-select" id="upload_folder">
+        <option>図面</option><option>契約・発注</option><option>請求・支払</option><option>写真</option><option>その他</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="confirmUpload()">アップロード</button>
+  `);
+  window._pendingFiles = files;
+}
+
+function confirmUpload() {
+  const folder = document.getElementById('upload_folder').value;
+  const files = window._pendingFiles || [];
+  if(!files.length) return;
+  closeModal();
+  showToast(`${files.length}件を読み込み中...`);
+
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const p = currentProject();
+      const ext = docExt(file.name);
+      const sizeKB = Math.round(file.size/1024);
+      const sizeStr = sizeKB > 1024 ? (sizeKB/1024).toFixed(1)+'MB' : sizeKB+'KB';
+      p.docs.push({
+        id: 'd'+Date.now()+Math.random().toString(36).slice(2,6),
+        name: file.name,
+        folder,
+        type: ext,
+        date: new Date().toISOString().slice(0,10),
+        size: sizeStr,
+        dataUrl: e.target.result
+      });
+      save();
+      done++;
+      if(done === files.length) {
+        renderDocs(document.getElementById('content'), document.getElementById('topbarActions'));
+        showToast(`${done}件をアップロードしました`);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function openDoc(id) {
+  const p = currentProject();
+  const d = p.docs.find(x=>x.id===id);
+  if(!d || !d.dataUrl) { showToast('ファイルデータがありません'); return; }
+  const w = window.open();
+  if(w) {
+    w.document.write(`<html><body style="margin:0;background:#222;display:flex;align-items:center;justify-content:center;min-height:100vh">
+      <img src="${d.dataUrl}" style="max-width:100%;max-height:100vh;object-fit:contain" onerror="this.style.display='none';document.body.innerHTML='<div style=color:#fff;padding:40px;font-family:sans-serif><p>このファイルはブラウザで直接表示できません。<br>ダウンロードボタンからご確認ください。</p></div>'">
+    </body></html>`);
+  }
+}
+
+function downloadDoc(id) {
+  const p = currentProject();
+  const d = p.docs.find(x=>x.id===id);
+  if(!d || !d.dataUrl) return;
+  const a = document.createElement('a');
+  a.href = d.dataUrl;
+  a.download = d.name;
+  a.click();
+  showToast(`${d.name} をダウンロードしました`);
+}
+
+function deleteDoc(id) {
+  if(!confirm('この書類を削除しますか？')) return;
+  const p = currentProject();
+  p.docs = p.docs.filter(d=>d.id!==id);
+  save(); renderDocs(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast('書類を削除しました');
+}
+
+/* ===== LEDGER ===== */
+function getLedger() {
+  const p = currentProject();
+  if(!p.budget) p.budget = {contractAmount:'0',items:[],income:[]};
+  return p.budget;
+}
+
+function renderLedger(c, tb) {
+  const p = currentProject();
+  const lg = getLedger();
+
+  const contract = parseInt(lg.contractAmount||0);
+  const budgetedTotal = lg.items.reduce((s,i)=>s+parseInt(i.budgeted||0),0);
+  const actualTotal   = lg.items.reduce((s,i)=>s+parseInt(i.actual||0),0);
+  const incomeTotal   = lg.income.reduce((s,i)=>s+parseInt(i.amount||0),0);
+  const grossProfit   = contract - budgetedTotal;
+  const grossMargin   = contract ? Math.round(grossProfit/contract*100) : 0;
+  const actualProfit  = contract - actualTotal;
+  const actualMargin  = contract ? Math.round(actualProfit/contract*100) : 0;
+  const remaining     = contract - incomeTotal;
+
+  const marginColor = (m) => m>=20?'var(--teal)':m>=10?'var(--amber)':'var(--red)';
+
+  c.innerHTML = `
+    <!-- KPI cards -->
+    <div class="stat-grid" style="margin-bottom:16px">
+      <div class="stat-card">
+        <div class="stat-label">請負金額</div>
+        <div class="stat-val" style="font-size:18px">${contract.toLocaleString()}</div>
+        <div class="stat-sub">円</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">実行予算合計</div>
+        <div class="stat-val" style="font-size:18px">${budgetedTotal.toLocaleString()}</div>
+        <div class="stat-sub">円</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">予算粗利</div>
+        <div class="stat-val" style="font-size:18px;color:${marginColor(grossMargin)}">${grossProfit.toLocaleString()}</div>
+        <div class="stat-sub">万円（${grossMargin}%）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">実績粗利</div>
+        <div class="stat-val" style="font-size:18px;color:${marginColor(actualMargin)}">${actualProfit.toLocaleString()}</div>
+        <div class="stat-sub">万円（${actualMargin}%）</div>
+      </div>
+    </div>
+
+    <!-- 請負金額 edit -->
+    <div class="card-sm" style="margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-size:13px;font-weight:500;color:var(--ink2);white-space:nowrap">請負金額（万円）</div>
+      <input type="number" id="contractAmtInput" value="${contract}"
+        style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--ink);outline:none"
+        onfocus="this.style.borderColor='var(--gold)'"
+        onblur="this.style.borderColor='var(--border)';saveContractAmount(this.value)"
+        onkeydown="if(event.key==='Enter')this.blur()">
+      <div style="font-size:11px;color:var(--ink3)">入力後Enterまたは他の場所をタップで保存</div>
+    </div>
+
+    <!-- 実行予算 table -->
+    <div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:14px;font-weight:700;color:var(--ink)">実行予算・原価管理</div>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="openAddBudgetItem()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 5v14M5 12h14"/></svg>項目追加
+      </button>
+    </div>
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:#fff;margin-bottom:20px">
+      <table style="width:100%;border-collapse:collapse;min-width:480px;font-size:13px">
+        <thead>
+          <tr style="background:var(--paper);border-bottom:1px solid var(--border)">
+            <th style="padding:9px 14px;text-align:left;font-weight:500;color:var(--ink2);font-size:11px">工種・項目</th>
+            <th style="padding:9px 8px;text-align:right;font-weight:500;color:var(--ink2);font-size:11px;white-space:nowrap">予算（万円）</th>
+            <th style="padding:9px 8px;text-align:right;font-weight:500;color:var(--ink2);font-size:11px;white-space:nowrap">実績（万円）</th>
+            <th style="padding:9px 8px;text-align:right;font-weight:500;color:var(--ink2);font-size:11px">差異</th>
+            <th style="padding:9px 8px;width:40px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lg.items.map(item=>{
+            const bud = parseInt(item.budgeted||0);
+            const act = parseInt(item.actual||0);
+            const diff = bud - act;
+            const diffColor = item.actual===''||item.actual===undefined ? 'var(--ink3)' : diff>=0 ? 'var(--teal)' : 'var(--red)';
+            return `<tr style="border-bottom:1px solid var(--border2)">
+              <td style="padding:8px 14px;font-weight:500;color:var(--ink)">${item.category}</td>
+              <td style="padding:6px 8px;text-align:right">
+                <input type="number" value="${item.budgeted||''}" placeholder="—"
+                  style="width:72px;text-align:right;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--ink);background:#fff;outline:none"
+                  onfocus="this.style.borderColor='var(--gold)'"
+                  onblur="this.style.borderColor='var(--border)';saveBudgetField('${item.id}','budgeted',this.value)"
+                  onkeydown="if(event.key==='Enter')this.blur()">
+              </td>
+              <td style="padding:6px 8px;text-align:right">
+                <input type="number" value="${item.actual||''}" placeholder="—"
+                  style="width:72px;text-align:right;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--ink);background:#fff;outline:none"
+                  onfocus="this.style.borderColor='var(--gold)'"
+                  onblur="this.style.borderColor='var(--border)';saveBudgetField('${item.id}','actual',this.value)"
+                  onkeydown="if(event.key==='Enter')this.blur()">
+              </td>
+              <td style="padding:8px;text-align:right;font-family:var(--mono);font-size:12px;font-weight:500;color:${diffColor}">
+                ${item.actual!==''&&item.actual!==undefined ? (diff>=0?'+':'')+diff.toLocaleString() : '—'}
+              </td>
+              <td style="padding:8px">
+                <button onclick="deleteBudgetItem('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--ink3);padding:2px" title="削除">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                </button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:var(--paper);border-top:1px solid var(--border)">
+            <td style="padding:9px 14px;font-weight:600;font-size:12px">合計</td>
+            <td style="padding:9px 8px;text-align:right;font-family:var(--mono);font-weight:700">${budgetedTotal.toLocaleString()}</td>
+            <td style="padding:9px 8px;text-align:right;font-family:var(--mono);font-weight:700">${actualTotal.toLocaleString()}</td>
+            <td style="padding:9px 8px;text-align:right;font-family:var(--mono);font-weight:700;color:${(budgetedTotal-actualTotal)>=0?'var(--teal)':'var(--red)'}">${actualTotal?(budgetedTotal>=actualTotal?'+':''+(budgetedTotal-actualTotal).toLocaleString()):'—'}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- 入金管理 -->
+    <div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:14px;font-weight:700;color:var(--ink)">入金管理</div>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="openAddIncome()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 5v14M5 12h14"/></svg>入金追加
+      </button>
+    </div>
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:#fff;margin-bottom:16px">
+      <table style="width:100%;border-collapse:collapse;min-width:380px;font-size:13px">
+        <thead>
+          <tr style="background:var(--paper);border-bottom:1px solid var(--border)">
+            <th style="padding:9px 14px;text-align:left;font-weight:500;color:var(--ink2);font-size:11px">内容</th>
+            <th style="padding:9px 8px;text-align:right;font-weight:500;color:var(--ink2);font-size:11px">金額（円）</th>
+            <th style="padding:9px 8px;text-align:left;font-weight:500;color:var(--ink2);font-size:11px">日付</th>
+            <th style="padding:9px 8px;width:40px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lg.income.map(inc=>`
+            <tr style="border-bottom:1px solid var(--border2)">
+              <td style="padding:9px 14px;font-weight:500;color:var(--ink)">${inc.category}<br><span style="font-size:11px;color:var(--ink3);font-weight:400">${inc.note||''}</span></td>
+              <td style="padding:9px 8px;text-align:right;font-family:var(--mono);font-weight:600;color:var(--teal)">${parseInt(inc.amount||0).toLocaleString()}</td>
+              <td style="padding:9px 8px;font-size:12px;color:var(--ink3)">${inc.date||'—'}</td>
+              <td style="padding:8px">
+                <button onclick="deleteIncome('${inc.id}')" style="background:none;border:none;cursor:pointer;color:var(--ink3);padding:2px" title="削除">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                </button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:var(--paper);border-top:1px solid var(--border)">
+            <td style="padding:9px 14px;font-weight:600;font-size:12px">入金済合計</td>
+            <td style="padding:9px 8px;text-align:right;font-family:var(--mono);font-weight:700;color:var(--teal)">${incomeTotal.toLocaleString()}</td>
+            <td colspan="2" style="padding:9px 8px;font-size:12px;color:var(--ink3)">残 ${remaining.toLocaleString()}円</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  `;
+
+  tb.innerHTML = '';
+}
+
+function saveContractAmount(val) {
+  const lg = getLedger();
+  lg.contractAmount = String(parseInt(val)||0);
+  save();
+  renderLedger(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast('請負金額を保存しました');
+}
+
+function saveBudgetField(id, field, val) {
+  const lg = getLedger();
+  const item = lg.items.find(i=>i.id===id);
+  if(!item) return;
+  item[field] = val===''?'':String(parseInt(val)||0);
+  save();
+  showToast('保存しました');
+  renderLedger(document.getElementById('content'), document.getElementById('topbarActions'));
+}
+
+function deleteBudgetItem(id) {
+  const lg = getLedger();
+  lg.items = lg.items.filter(i=>i.id!==id);
+  save();
+  renderLedger(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast('削除しました');
+}
+
+function deleteIncome(id) {
+  const lg = getLedger();
+  lg.income = lg.income.filter(i=>i.id!==id);
+  save();
+  renderLedger(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast('削除しました');
+}
+
+function openAddBudgetItem() {
+  openModal(`
+    ${modalHdr('予算項目を追加')}
+    <div class="form-group"><label class="form-label">工種・項目名 *</label><input class="form-input" id="ab_cat" placeholder="例：塗装工事"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">予算額（万円）</label><input class="form-input" id="ab_bud" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">実績額（万円）</label><input class="form-input" id="ab_act" type="number" placeholder="未確定なら空欄"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="saveAddBudgetItem()">追加</button>
+  `);
+}
+
+function saveAddBudgetItem() {
+  const cat = document.getElementById('ab_cat').value.trim();
+  if(!cat) { showToast('項目名を入力してください'); return; }
+  const lg = getLedger();
+  const actVal = document.getElementById('ab_act').value;
+  lg.items.push({
+    id:'b'+Date.now(), category:cat,
+    budgeted: document.getElementById('ab_bud').value||'0',
+    actual: actVal===''?'':String(parseInt(actVal)||0),
+    note:''
+  });
+  save(); closeModal();
+  renderLedger(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast(`「${cat}」を追加しました`);
+}
+
+function openAddIncome() {
+  openModal(`
+    ${modalHdr('入金を追加')}
+    <div class="form-group"><label class="form-label">内容 *</label><input class="form-input" id="ai_cat" placeholder="例：請負金（3回目）"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">金額（円）</label><input class="form-input" id="ai_amt" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">日付</label><input class="form-input" id="ai_date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">備考</label><input class="form-input" id="ai_note" placeholder="着手金・中間金など"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="saveAddIncome()">追加</button>
+  `);
+}
+
+function saveAddIncome() {
+  const cat = document.getElementById('ai_cat').value.trim();
+  if(!cat) { showToast('内容を入力してください'); return; }
+  const lg = getLedger();
+  lg.income.push({
+    id:'i'+Date.now(), category:cat,
+    amount: document.getElementById('ai_amt').value||'0',
+    date: document.getElementById('ai_date').value,
+    note: document.getElementById('ai_note').value
+  });
+  save(); closeModal();
+  renderLedger(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast(`入金を追加しました`);
+}
+
+/* ===== MODALS ===== */
+function openModal(html) {
+  document.getElementById('modalInner').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+
+function modalHdr(title) {
+  return `<div class="modal-hdr">
+    <div class="modal-title">${title}</div>
+    <button class="close-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>`;
+}
+
+function openEditProject() {
+  const p = currentProject();
+  openModal(`
+    ${modalHdr('現場情報を編集')}
+    <div class="form-group"><label class="form-label">現場名 *</label><input class="form-input" id="ep_name" value="${p.name}"></div>
+    <div class="form-group"><label class="form-label">所在地</label><input class="form-input" id="ep_loc" value="${p.location||''}"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">着工日</label><input class="form-input" id="ep_start" type="date" value="${p.start||''}"></div>
+      <div class="form-group"><label class="form-label">竣工予定日</label><input class="form-input" id="ep_end" type="date" value="${p.end||''}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">概要</label><input class="form-input" id="ep_desc" value="${p.desc||''}" placeholder="用途・構造など"></div>
+    <div class="form-group"><label class="form-label">状況</label>
+      <select class="form-input form-select" id="ep_status">
+        ${['計画中','着工前','施工中','竣工'].map(s=>`<option ${s===p.status?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;margin-bottom:10px" onclick="saveEditProject()">保存</button>
+    <button class="btn" style="width:100%;justify-content:center;padding:11px;color:var(--red);border-color:var(--red)" onclick="deleteProject()">この現場を削除</button>
+  `);
+}
+
+function saveEditProject() {
+  const name = document.getElementById('ep_name').value.trim();
+  if(!name) { showToast('現場名を入力してください'); return; }
+  const p = currentProject();
+  p.name = name;
+  p.location = document.getElementById('ep_loc').value;
+  p.start = document.getElementById('ep_start').value;
+  p.end = document.getElementById('ep_end').value;
+  p.desc = document.getElementById('ep_desc').value;
+  p.status = document.getElementById('ep_status').value;
+  save();
+  buildProjectSelect();
+  closeModal();
+  renderDashboard(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast('現場情報を更新しました');
+}
+
+function deleteProject() {
+  const p = currentProject();
+  if(!confirm(`「${p.name}」を削除しますか？\nこの操作は元に戻せません。`)) return;
+  db.projects = db.projects.filter(x=>x.id!==p.id);
+  if(db.projects.length===0) {
+    db.projects = defaultData().projects;
+  }
+  db.currentProject = db.projects[0].id;
+  save();
+  buildProjectSelect();
+  closeModal();
+  showPage('dashboard', document.querySelector('.nav-item'));
+  showToast('現場を削除しました');
+}
+
+function openNewProject() {
+  openModal(`
+    ${modalHdr('新規現場を追加')}
+    <div class="form-group"><label class="form-label">現場名 *</label><input class="form-input" id="np_name" placeholder="例：田中邸新築工事"></div>
+    <div class="form-group"><label class="form-label">所在地</label><input class="form-input" id="np_loc" placeholder="例：京都市伏見区"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">着工日</label><input class="form-input" id="np_start" type="date"></div>
+      <div class="form-group"><label class="form-label">竣工予定日</label><input class="form-input" id="np_end" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">概要</label><input class="form-input" id="np_desc" placeholder="用途・構造など"></div>
+    <div class="form-group"><label class="form-label">状況</label>
+      <select class="form-input form-select" id="np_status">
+        <option>計画中</option><option>着工前</option><option selected>施工中</option><option>竣工</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="saveNewProject()">現場を追加</button>
+  `);
+}
+
+function saveNewProject() {
+  const name = document.getElementById('np_name').value.trim();
+  if(!name) { showToast('現場名を入力してください'); return; }
+  const id = 'p'+Date.now();
+  db.projects.push({
+    id, name,
+    location: document.getElementById('np_loc').value,
+    start: document.getElementById('np_start').value,
+    end: document.getElementById('np_end').value,
+    desc: document.getElementById('np_desc').value,
+    status: document.getElementById('np_status').value,
+    kohtei: [
+      {id:'k'+Date.now()+'1',name:'仮設工事',bars:[3,0,0,0,0,0,0,0,0],status:'予定'},
+      {id:'k'+Date.now()+'2',name:'基礎工事',bars:[0,3,3,0,0,0,0,0,0],status:'予定'},
+      {id:'k'+Date.now()+'3',name:'躯体工事',bars:[0,0,0,3,3,0,0,0,0],status:'予定'},
+    ],
+    vendors: [],
+    docs: []
+  });
+  db.currentProject = id;
+  save();
+  buildProjectSelect();
+  closeModal();
+  showPage('dashboard', null);
+  showToast(`「${name}」を追加しました`);
+}
+
+function openAddVendor() {
+  openModal(`
+    ${modalHdr('業者を追加')}
+    <div class="form-group"><label class="form-label">会社名 *</label><input class="form-input" id="av_name" placeholder="例：田中基礎工業"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">担当工種</label>
+        <select class="form-input form-select" id="av_trade">
+          <option value='土木工事'>土木工事</option>
+<option value='建築工事'>建築工事</option>
+<option value='大工工事'>大工工事</option>
+<option value='左官工事'>左官工事</option>
+<option value='とび・土工・コンクリート工事'>とび・土工・コンクリート工事</option>
+<option value='石工事'>石工事</option>
+<option value='屋根工事'>屋根工事</option>
+<option value='電気工事'>電気工事</option>
+<option value='管工事'>管工事</option>
+<option value='タイル・れんが・ブロック工事'>タイル・れんが・ブロック工事</option>
+<option value='鋼構造物工事'>鋼構造物工事</option>
+<option value='鉄筋工事'>鉄筋工事</option>
+<option value='舗装工事'>舗装工事</option>
+<option value='しゅんせつ工事'>しゅんせつ工事</option>
+<option value='板金工事'>板金工事</option>
+<option value='ガラス工事'>ガラス工事</option>
+<option value='塗装工事'>塗装工事</option>
+<option value='防水工事'>防水工事</option>
+<option value='内装仕上工事'>内装仕上工事</option>
+<option value='機械器具設置工事'>機械器具設置工事</option>
+<option value='熱絶縁工事'>熱絶縁工事</option>
+<option value='電気通信工事'>電気通信工事</option>
+<option value='造園工事'>造園工事</option>
+<option value='さく井工事'>さく井工事</option>
+<option value='建具工事'>建具工事</option>
+<option value='水道施設工事'>水道施設工事</option>
+<option value='消防施設工事'>消防施設工事</option>
+<option value='清掃施設工事'>清掃施設工事</option>
+<option value='解体工事'>解体工事</option>
+<option value='木工事'>木工事</option>
+<option value='仮設工事'>仮設工事</option>
+<option value='基礎工事'>基礎工事</option>
+<option value='外壁工事'>外壁工事</option>
+<option value='設備工事'>設備工事</option>
+<option value='ガス工事'>ガス工事</option>
+<option value='住設機器'>住設機器</option>
+<option value='アルミサッシ'>アルミサッシ</option>
+<option value='クロス工事'>クロス工事</option>
+<option value='断熱工事'>断熱工事</option>
+<option value='外構工事'>外構工事</option>
+<option value='美装工事'>美装工事</option>
+<option value='シミュレーションゴルフ'>シミュレーションゴルフ</option>
+<option value='TrackMan'>TrackMan</option>
+<option value='防犯カメラ設置工事'>防犯カメラ設置工事</option>
+<option value='廃材処理費'>廃材処理費</option>
+<option value='雑工事'>雑工事</option>
+<option value='施工管理費'>施工管理費</option>
+<option value='諸経費'>諸経費</option>
+<option value='設計監理費'>設計監理費</option>
+<option value='地盤調査費'>地盤調査費</option>
+<option value='地盤保証保険'>地盤保証保険</option>
+<option value='消防費'>消防費</option>
+<option value='その他'>その他</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">電話番号</label><input class="form-input" id="av_phone" type="tel" placeholder="000-0000-0000"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">入場日</label><input class="form-input" id="av_enter" type="date"></div>
+      <div class="form-group"><label class="form-label">退場予定日</label><input class="form-input" id="av_exit" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">請負金額（円）</label><input class="form-input" id="av_amount" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">支払状況</label>
+        <select class="form-input form-select" id="av_pay">
+          <option>未発注</option><option>未請求</option><option>請求済</option><option>支払済</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">状況</label>
+      <select class="form-input form-select" id="av_status">
+        <option>予定</option><option>施工中</option><option>完了</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">備考</label><input class="form-input" id="av_note" placeholder="メモ"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="saveAddVendor()">業者を追加</button>
+  `);
+}
+
+function saveAddVendor() {
+  const name = document.getElementById('av_name').value.trim();
+  if(!name) { showToast('会社名を入力してください'); return; }
+  const p = currentProject();
+  p.vendors.push({
+    id:'v'+Date.now(), name,
+    trade: document.getElementById('av_trade').value,
+    phone: document.getElementById('av_phone').value,
+    enterDate: document.getElementById('av_enter').value,
+    exitDate: document.getElementById('av_exit').value,
+    amount: document.getElementById('av_amount').value||'0',
+    payStatus: document.getElementById('av_pay').value,
+    status: document.getElementById('av_status').value,
+    note: document.getElementById('av_note').value
+  });
+  save(); closeModal();
+  renderVendor(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast(`「${name}」を追加しました`);
+}
+
+function openEditVendor(id) {
+  const p = currentProject();
+  const v = p.vendors.find(x=>x.id===id);
+  if(!v) return;
+  openModal(`
+    ${modalHdr('業者を編集')}
+    <div class="form-group"><label class="form-label">会社名</label><input class="form-input" id="ev_name" value="${v.name}"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">担当工種</label>
+        <select class="form-input form-select" id="ev_trade">
+          ${['土木工事', '建築工事', '大工工事', '左官工事', 'とび・土工・コンクリート工事', '石工事', '屋根工事', '電気工事', '管工事', 'タイル・れんが・ブロック工事', '鋼構造物工事', '鉄筋工事', '舗装工事', 'しゅんせつ工事', '板金工事', 'ガラス工事', '塗装工事', '防水工事', '内装仕上工事', '機械器具設置工事', '熱絶縁工事', '電気通信工事', '造園工事', 'さく井工事', '建具工事', '水道施設工事', '消防施設工事', '清掃施設工事', '解体工事', '木工事', '仮設工事', '基礎工事', '外壁工事', '設備工事', 'ガス工事', '住設機器', 'アルミサッシ', 'クロス工事', '断熱工事', '外構工事', '美装工事', 'シミュレーションゴルフ', 'TrackMan', '防犯カメラ設置工事', '廃材処理費', '雑工事', '施工管理費', '諸経費', '設計監理費', '地盤調査費', '地盤保証保険', '消防費', 'その他'].map(t=>`<option ${t===v.trade?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">電話番号</label><input class="form-input" id="ev_phone" value="${v.phone||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">入場日</label><input class="form-input" id="ev_enter" type="date" value="${v.enterDate||''}"></div>
+      <div class="form-group"><label class="form-label">退場予定日</label><input class="form-input" id="ev_exit" type="date" value="${v.exitDate||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">請負金額（円）</label><input class="form-input" id="ev_amount" type="number" value="${v.amount||0}"></div>
+      <div class="form-group"><label class="form-label">支払状況</label>
+        <select class="form-input form-select" id="ev_pay">
+          ${['未発注','未請求','請求済','支払済'].map(s=>`<option ${s===v.payStatus?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">状況</label>
+      <select class="form-input form-select" id="ev_status">
+        ${['予定','施工中','完了'].map(s=>`<option ${s===v.status?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">備考</label><input class="form-input" id="ev_note" value="${v.note||''}"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="saveEditVendor('${id}')">保存</button>
+  `);
+}
+
+function saveEditVendor(id) {
+  const p = currentProject();
+  const v = p.vendors.find(x=>x.id===id);
+  if(!v) return;
+  v.name = document.getElementById('ev_name').value;
+  v.trade = document.getElementById('ev_trade').value;
+  v.phone = document.getElementById('ev_phone').value;
+  v.enterDate = document.getElementById('ev_enter').value;
+  v.exitDate = document.getElementById('ev_exit').value;
+  v.amount = document.getElementById('ev_amount').value;
+  v.payStatus = document.getElementById('ev_pay').value;
+  v.status = document.getElementById('ev_status').value;
+  v.note = document.getElementById('ev_note').value;
+  save(); closeModal();
+  renderVendor(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast('更新しました');
+}
+
+// openAddDoc / saveAddDoc は triggerFileUpload に統合
+
+function openAddKohtei() {
+  openModal(`
+    ${modalHdr('工種を追加')}
+    <div class="form-group"><label class="form-label">工種名 *</label><input class="form-input" id="ak_name" placeholder="例：塗装工事"></div>
+    <div class="form-group"><label class="form-label">状況</label>
+      <select class="form-input form-select" id="ak_status">
+        <option>予定</option><option>施工中</option><option>完了</option>
+      </select>
+    </div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">工程バー（月別）は追加後に工程表画面で編集できます。</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="saveAddKohtei()">追加</button>
+  `);
+}
+
+function saveAddKohtei() {
+  const name = document.getElementById('ak_name').value.trim();
+  if(!name) { showToast('工種名を入力してください'); return; }
+  const p = currentProject();
+  p.kohtei.push({id:'k'+Date.now(), name, bars:[0,0,0,0,0,0,0,0,0], status: document.getElementById('ak_status').value});
+  save(); closeModal();
+  renderKohtei(document.getElementById('content'), document.getElementById('topbarActions'));
+  showToast(`「${name}」を追加しました`);
+}
+
+/* ===== HELPERS ===== */
+function statusBadge(s) {
+  if(s==='完了'||s==='竣工') return 'badge-green';
+  if(s==='施工中'||s==='進行中') return 'badge-amber';
+  if(s==='予定'||s==='計画中'||s==='着工前') return 'badge-gray';
+  return 'badge-gray';
+}
+function payBadge(s) {
+  if(s==='支払済') return 'badge-green';
+  if(s==='請求済') return 'badge-blue';
+  if(s==='未請求') return 'badge-amber';
+  return 'badge-gray';
+}
+
+/* ===== DASHBOARD INLINE SAVE ===== */
+function startEditInline(id, val, color, fontSize) {
+  const disp = document.getElementById('disp-'+id);
+  if(!disp) return;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.value = parseInt(val||0);
+  input.style.cssText = `width:100%;font-size:${fontSize};font-weight:700;font-family:var(--mono);border:none;border-bottom:1.5px solid var(--gold);background:transparent;color:${color};padding:2px 0;outline:none;-moz-appearance:textfield;appearance:textfield`;
+  disp.replaceWith(input);
+  input.focus();
+  input.select();
+  const finish = () => {
+    saveDashField(id, input.value);
+  };
+  input.addEventListener('blur', finish);
+  input.addEventListener('keydown', e => { if(e.key==='Enter') input.blur(); if(e.key==='Escape') { renderDashboard(document.getElementById('content'),document.getElementById('topbarActions')); } });
+}
+
+function saveDashField(field, val) {
+  const p = currentProject();
+  if(!p.budget) p.budget={contractAmount:'0',items:[],income:[]};
+  const v = String(parseInt(val)||0);
+  if(field==='contract') {
+    p.budget.contractAmount = v;
+  } else if(field==='budgetTotal') {
+    // budgetTotal is read-only (sum of items) — show toast
+    showToast('実行予算は収支台帳の各項目で入力してください');
+    renderDashboard(document.getElementById('content'),document.getElementById('topbarActions'));
+    return;
+  }
+  save();
+  renderDashboard(document.getElementById('content'),document.getElementById('topbarActions'));
+  showToast('保存しました');
+}
+function startEditIncome(id, val) {
+  const disp = document.getElementById('inc-disp-'+id);
+  if(!disp) return;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.value = parseInt(val||0);
+  input.style.cssText = 'width:120px;text-align:right;font-family:var(--mono);font-size:14px;font-weight:600;border:none;border-bottom:1.5px solid var(--gold);background:transparent;color:var(--teal);padding:2px 0;outline:none;flex-shrink:0;-moz-appearance:textfield;appearance:textfield';
+  disp.replaceWith(input);
+  input.focus();
+  input.select();
+  input.addEventListener('blur', () => saveDashIncome(id, input.value));
+  input.addEventListener('keydown', e => { if(e.key==='Enter') input.blur(); });
+}
+function saveDashIncome(id, val) {
+  const p = currentProject();
+  if(!p.budget) return;
+  const inc = p.budget.income.find(i=>i.id===id);
+  if(!inc) return;
+  inc.amount = String(parseInt(val)||0);
+  save();
+  renderDashboard(document.getElementById('content'),document.getElementById('topbarActions'));
+  showToast('入金額を保存しました');
+}
+function deleteDashIncome(id) {
+  if(!confirm('この入金を削除しますか？')) return;
+  const p = currentProject();
+  if(!p.budget) return;
+  p.budget.income = p.budget.income.filter(i=>i.id!==id);
+  save();
+  renderDashboard(document.getElementById('content'),document.getElementById('topbarActions'));
+  showToast('削除しました');
+}
+function openAddIncomeFromDash() {
+  openModal(`
+    ${modalHdr('入金を追加')}
+    <div class="form-group"><label class="form-label">内容 *</label><input class="form-input" id="ai_cat" placeholder="例：着手金"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">金額（円）</label><input class="form-input" id="ai_amt" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">日付</label><input class="form-input" id="ai_date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">備考</label><input class="form-input" id="ai_note" placeholder="着手金・中間金など"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="saveAddIncomeFromDash()">追加</button>
+  `);
+}
+function saveAddIncomeFromDash() {
+  const cat = document.getElementById('ai_cat').value.trim();
+  if(!cat){showToast('内容を入力してください');return;}
+  const p = currentProject();
+  if(!p.budget) p.budget={contractAmount:'0',items:[],income:[]};
+  p.budget.income.push({
+    id:'i'+Date.now(), category:cat,
+    amount: document.getElementById('ai_amt').value||'0',
+    date: document.getElementById('ai_date').value,
+    note: document.getElementById('ai_note').value
+  });
+  save(); closeModal();
+  renderDashboard(document.getElementById('content'),document.getElementById('topbarActions'));
+  showToast('入金を追加しました');
+}
+
+/* ===== SUPABASE SYNC ===== */
+const SUPABASE_URL = 'https://dzdmikjsbfdjqannzayv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_6nJJPOzz0Nzfv6N21HuwIg_CjaQ15zB';
+let _supabase = null;
+
+function getSupabase() {
+  if(!_supabase) {
+    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+  return _supabase;
+}
+
+function setSyncStatus(status, msg) {
+  const dot = document.getElementById('driveDot');
+  const label = document.getElementById('driveLabel');
+  const note = document.getElementById('syncNote');
+  if(status==='ok') { dot.style.background='#1e7a6e'; }
+  else if(status==='error') { dot.style.background='#c0392b'; }
+  else { dot.style.background='#d97706'; }
+  if(label) label.textContent = msg;
+}
+
+async function supabaseUpload() {
+  setSyncStatus('loading','保存中...');
+  try {
+    const sb = getSupabase();
+    const { error } = await sb.from('genba_data').upsert({
+      id: 'main',
+      data: db,
+      updated_at: new Date().toISOString()
+    });
+    if(error) throw error;
+    const now = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('ok', '保存済 ' + now);
+    document.getElementById('syncNote').textContent = 'クラウドに保存しました';
+    showToast('クラウドに保存しました');
+  } catch(e) {
+    setSyncStatus('error','保存失敗');
+    document.getElementById('syncNote').textContent = e.message||'エラーが発生しました';
+    showToast('保存に失敗しました');
+  }
+}
+
+async function supabaseDownload() {
+  setSyncStatus('loading','読込中...');
+  try {
+    const sb = getSupabase();
+    const { data, error } = await sb.from('genba_data').select('*').eq('id','main').single();
+    if(error) throw error;
+    if(!data || !data.data) throw new Error('データがありません');
+    db = data.data;
+    save();
+    buildProjectSelect();
+    renderPage(currentPage);
+    const now = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('ok','読込済 ' + now);
+    document.getElementById('syncNote').textContent = 'クラウドから読み込みました';
+    showToast('クラウドから読み込みました');
+  } catch(e) {
+    setSyncStatus('error','読込失敗');
+    document.getElementById('syncNote').textContent = e.message||'エラーが発生しました';
+    showToast('読込に失敗しました');
+  }
+}
+
+// Keep old drive functions for backward compatibility
+function driveUpload() { supabaseUpload(); }
+function driveDownload() { supabaseDownload(); }
+
+
+const DRIVE_FILENAME = '現場管理データ.json';
+
+function driveUpload() {
+  const btn = document.getElementById('btnUpload');
+  const note = document.getElementById('syncNote');
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  note.textContent = '準備中...';
+
+  const data = JSON.stringify(db, null, 2);
+  const blob = new Blob([data], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = DRIVE_FILENAME;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Update UI
+  const now = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('driveDot').style.background = '#1e7a6e';
+  document.getElementById('driveLabel').textContent = '最終保存 ' + now;
+  note.textContent = 'ダウンロードしたJSONをDriveにアップロードしてください';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  showToast('JSONファイルをダウンロードしました');
+}
+
+function driveDownload() {
+  const note = document.getElementById('syncNote');
+  note.textContent = 'JSONファイルを選択してください';
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const loaded = JSON.parse(ev.target.result);
+        if(!loaded.projects) throw new Error('不正なデータ');
+        db = loaded;
+        save();
+        buildProjectSelect();
+        renderPage(currentPage);
+        const now = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
+        document.getElementById('driveDot').style.background = '#1e7a6e';
+        document.getElementById('driveLabel').textContent = '読込完了 ' + now;
+        note.textContent = 'データを読み込みました';
+        showToast('Driveのデータを読み込みました');
+      } catch(err) {
+        note.textContent = '読込失敗：正しいJSONファイルを選択してください';
+        showToast('読込に失敗しました');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+/* ===== SIDEBAR MOBILE ===== */
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('overlay');
+  s.classList.toggle('open');
+  o.classList.toggle('show', s.classList.contains('open'));
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+/* ===== TOAST ===== */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+/* ===== INIT ===== */
+(function(){
+  const stored = localStorage.getItem(STORE_KEY);
+  if(stored){try{const parsed=JSON.parse(stored);const p=parsed.projects&&parsed.projects[0];if(p&&p.budget&&p.budget.items&&p.budget.items.length<20){localStorage.removeItem(STORE_KEY);db=defaultData();}}catch(e){localStorage.removeItem(STORE_KEY);db=defaultData();}}
+})();
+buildProjectSelect();
+renderPage('dashboard');
+</script>
+</body>
+</html>
