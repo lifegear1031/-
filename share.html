@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>現場情報 — Estate Ishida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --ink: #1a1a18;
+  --ink2: #4a4a46;
+  --ink3: #8a8a84;
+  --paper: #f7f5f0;
+  --paper2: #edeae3;
+  --gold: #b8892a;
+  --gold-light: #f5e9cc;
+  --teal: #1e7a6e;
+  --teal-light: #d4efeb;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --red: #c0392b;
+  --border: rgba(26,26,24,0.1);
+  --border2: rgba(26,26,24,0.06);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --font: 'Noto Sans JP', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6}
+.header{background:var(--ink);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.brand{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:2px}
+.header-title{font-size:16px;font-weight:700}
+.sync-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-family:var(--font);font-size:12px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.sync-btn svg{width:13px;height:13px}
+.content{max-width:720px;margin:0 auto;padding:20px 16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title svg{width:16px;height:16px;color:var(--gold)}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
+.badge-green{background:var(--teal-light);color:var(--teal)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-gray{background:var(--paper2);color:var(--ink2)}
+
+/* PROJECT INFO */
+.project-name{font-size:22px;font-weight:700;margin-bottom:4px}
+.project-sub{font-size:13px;color:var(--ink3);margin-bottom:12px}
+.progress-wrap{margin-top:12px}
+.progress-track{height:8px;background:var(--paper2);border-radius:4px;overflow:hidden;margin:4px 0}
+.progress-fill{height:100%;background:var(--teal);border-radius:4px}
+.progress-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3)}
+
+/* GANTT */
+.gantt-wrap{overflow-x:auto}
+.gantt-table{border-collapse:collapse;width:100%;min-width:500px;font-size:12px}
+.gantt-table th{background:var(--paper);border-bottom:1px solid var(--border);padding:7px 4px;text-align:center;font-weight:500;color:var(--ink2);font-size:10px}
+.gantt-table td{border-bottom:1px solid var(--border2);padding:0}
+.gantt-table tr:last-child td{border-bottom:none}
+.row-lbl{padding:9px 12px!important;font-weight:500;color:var(--ink);white-space:nowrap;background:#fff;position:sticky;left:0;border-right:1px solid var(--border);min-width:100px;font-size:12px}
+.bar-cell{width:40px;padding:5px 2px!important;height:32px;background:#fff}
+.bar-inner{height:20px;border-radius:3px;width:100%}
+.bar-done{background:#1e7a6e}
+.bar-wip{background:#d97706}
+.bar-plan{background:#afa9ec}
+.bar-today{background:rgba(184,137,42,0.08)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink2)}
+.legend-dot{width:12px;height:8px;border-radius:2px}
+
+/* VENDOR */
+.vendor-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2)}
+.vendor-row:last-child{border-bottom:none}
+.vendor-avatar{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;background:var(--paper2);color:var(--ink2)}
+.vendor-name{font-size:13px;font-weight:500;color:var(--ink)}
+.vendor-meta{font-size:11px;color:var(--ink3)}
+
+/* DOCS */
+.doc-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);cursor:pointer}
+.doc-item:last-child{border-bottom:none}
+.doc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--teal-light)}
+.doc-icon svg{width:18px;height:18px;color:var(--teal)}
+.doc-name{font-size:13px;font-weight:500;color:var(--ink)}
+.doc-meta{font-size:11px;color:var(--ink3)}
+
+/* LOADING */
+.loading{text-align:center;padding:60px 20px;color:var(--ink3)}
+.loading svg{width:32px;height:32px;margin:0 auto 12px;display:block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:40px;color:var(--ink3);font-size:13px}
+.last-updated{font-size:11px;color:var(--ink3);text-align:center;padding:8px;margin-top:4px}
+
+/* NOTICE */
+.notice{background:var(--gold-light);border:1px solid var(--gold);border-radius:var(--radius);padding:12px 14px;font-size:12px;color:var(--ink2);margin-bottom:16px;display:flex;gap:8px;align-items:flex-start}
+.notice svg{width:16px;height:16px;color:var(--gold);flex-shrink:0;margin-top:1px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="brand">Estate Ishida</div>
+    <div class="header-title" id="headerTitle">現場情報</div>
+  </div>
+  <button class="sync-btn" onclick="loadData()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+    更新
+  </button>
+</div>
+
+<div class="content" id="content">
+  <div class="loading">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+    データを読み込み中...
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://dzdmikjsbfdjqannzayv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6ZG1pa2pzYmZkanFhbm56YXl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTk3MzEsImV4cCI6MjA5Mzc5NTczMX0._uKXGP1pijWEOEq5lEIt3auiII498orKC0sFmqrtJiQ';
+let db = null;
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function loadData() {
+  document.getElementById('content').innerHTML = `<div class="loading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>データを読み込み中...</div>`;
+  try {
+    const { data, error } = await sb.from('genba_data').select('*').eq('id','main').single();
+    if(error) throw error;
+    db = data.data;
+    const updatedAt = new Date(data.updated_at).toLocaleString('ja-JP');
+    render(updatedAt);
+  } catch(e) {
+    document.getElementById('content').innerHTML = `<div class="empty">データを取得できませんでした。<br>しばらく経ってから「更新」を押してください。</div>`;
+  }
+}
+
+function statusBadge(s) {
+  if(s==='完了'||s==='竣工') return 'badge-green';
+  if(s==='施工中'||s==='進行中') return 'badge-amber';
+  return 'badge-gray';
+}
+
+function barClass(v) { return v===1?'bar-done':v===2?'bar-wip':v===3?'bar-plan':''; }
+
+function getMonths(p) {
+  const start = p.start ? new Date(p.start) : new Date();
+  const end = p.end ? new Date(p.end) : new Date(start.getFullYear(), start.getMonth()+8, 1);
+  const months = [];
+  let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+  while(cur <= endMonth) {
+    months.push({ year: cur.getFullYear(), month: cur.getMonth()+1 });
+    cur.setMonth(cur.getMonth()+1);
+  }
+  return months;
+}
+
+function normalizeBars(bars, len) {
+  const src = Array.isArray(bars) ? bars : [];
+  const result = [];
+  for(let i=0; i<len; i++) result.push(typeof src[i]==='number' ? src[i] : 0);
+  return result;
+}
+
+function render(updatedAt) {
+  const p = db.projects && db.projects[0];
+  if(!p) return;
+
+  document.getElementById('headerTitle').textContent = p.name || '現場情報';
+
+  const doneRows = p.kohtei ? p.kohtei.filter(k=>k.status==='完了').length : 0;
+  const totalRows = p.kohtei ? p.kohtei.length : 1;
+  const progress = Math.round(doneRows/totalRows*100);
+
+  const months = getMonths(p);
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${today.getMonth()+1}`;
+
+  const vendorsHtml = (p.vendors||[]).map(v => `
+    <div class="vendor-row">
+      <div class="vendor-avatar">${(v.name||v.trade||'?').charAt(0)}</div>
+      <div style="flex:1">
+        <div class="vendor-name">${v.name||'（未定）'}</div>
+        <div class="vendor-meta">${v.trade}${v.enterDate?' ／ '+v.enterDate+'〜'+v.exitDate:''}</div>
+      </div>
+      <span class="badge ${statusBadge(v.status)}">${v.status}</span>
+    </div>
+  `).join('');
+
+  const docsHtml = (p.docs||[]).filter(d=>d.dataUrl).map(d => `
+    <div class="doc-item" onclick="downloadDoc('${d.id}')">
+      <div class="doc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="doc-name">${d.name}</div>
+        <div class="doc-meta">${d.type} ／ ${d.date} ／ ${d.folder}</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink3)"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </div>
+  `).join('') || '<div class="empty" style="padding:16px">共有書類なし</div>';
+
+  document.getElementById('content').innerHTML = `
+    <div class="notice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      このページは業者向け共有ページです。金額・支払情報は表示されていません。
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div>
+          <div class="project-name">${p.name}</div>
+          <div class="project-sub">${p.location||''} ／ ${p.start||''} 〜 ${p.end||''}</div>
+          ${p.desc?`<div style="font-size:12px;color:var(--ink3)">${p.desc}</div>`:''}
+        </div>
+        <span class="badge ${statusBadge(p.status)}">${p.status}</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
+        <div class="progress-meta"><span>工程進捗 ${progress}%</span><span>竣工 ${p.end||''}</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        月間工程表
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>完了</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>施工中</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#afa9ec"></div>予定</div>
+      </div>
+      <div class="gantt-wrap">
+        <table class="gantt-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:7px 12px;position:sticky;left:0;background:var(--paper)">工種</th>
+              ${months.map(m=>{
+                const isToday = `${m.year}-${m.month}`===todayKey;
+                return `<th style="${isToday?'color:var(--gold);font-weight:700;border-bottom:2px solid var(--gold)':''}">${m.month}月<br><span style="font-size:9px;opacity:0.6">${m.year}</span></th>`;
+              }).join('')}
+              <th>状況</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(p.kohtei||[]).map(k=>{
+              const bars = normalizeBars(k.bars, months.length);
+              return `<tr>
+                <td class="row-lbl">${k.name}</td>
+                ${bars.map((b,i)=>{
+                  const isToday = `${months[i].year}-${months[i].month}`===todayKey;
+                  return `<td class="bar-cell" style="background:${isToday?'rgba(184,137,42,0.06)':'#fff'}">
+                    <div class="bar-inner ${barClass(b)}"></div>
+                  </td>`;
+                }).join('')}
+                <td style="padding:6px 8px;white-space:nowrap"><span class="badge ${statusBadge(k.status)}">${k.status}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        業者スケジュール
+      </div>
+      ${vendorsHtml || '<div class="empty">業者情報なし</div>'}
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        共有書類
+      </div>
+      ${docsHtml}
+    </div>
+
+    <div class="last-updated">最終更新：${updatedAt}</div>
+  `;
+}
+
+function downloadDoc(id) {
+  if(!db) return;
+  const p = db.projects && db.projects[0];
+  if(!p) return;
+  const d = (p.docs||[]).find(x=>x.id===id);
+  if(!d||!d.dataUrl) return;
+  const a = document.createElement('a');
+  a.href = d.dataUrl;
+  a.download = d.name;
+  a.click();
+}
+
+loadData();
+</script>
+</body>
+</html>
